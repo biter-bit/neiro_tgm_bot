@@ -1,6 +1,6 @@
 from aiogram import BaseMiddleware
 from typing import Any, Awaitable, Callable, Dict
-from aiogram.types import Message, TelegramObject, CallbackQuery
+from aiogram.types import Message
 from utils.db_api import get_or_create_profile
 
 

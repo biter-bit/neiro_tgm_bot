@@ -10,13 +10,14 @@ from middlewares import ProfileMiddleware, CounterMiddleware
 
 async def main():
     """Запусти бота"""
-    create_tables()
-    bot = Bot(settings.TOKEN_TELEGRAM_BOT)
-    dp = Dispatcher(bot=bot)
 
-    dp.message.middleware.register(CounterMiddleware())
+    create_tables() # создаем таблицы бд
+    bot = Bot(settings.TOKEN_TELEGRAM_BOT) # для работы с API Telegram
+    dp = Dispatcher(bot=bot) # создаем обьект диспетчера для работы с callback и сообщениями бота telegram
+
+    dp.message.middleware.register(CounterMiddleware()) # создаем middleware счетчик сообщений
     # dp.callback_query.middleware(ProfileMiddleware())
-    dp.update.middleware(ProfileMiddleware())
+    dp.update.middleware(ProfileMiddleware()) # создаем middleware создание пользователя если нет
 
     dp.include_router(main_router)
     await dp.start_polling(bot)

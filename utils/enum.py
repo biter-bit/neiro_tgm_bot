@@ -23,6 +23,26 @@ class Messages(Enum):
 Подпишитесь на наш Telegram канал про технологии: @naebnet (https://t.me/+-P-yDHu8BuEyODIy)
     '''
 
+    PROFILE = '''
+    Это ваш профиль.
+    ID: {tgid}
+    Подписка: {code_tariff}
+    Чтобы добавить подписку нажмите /pay
+    
+    Лимиты
+    GPT-4o mini — осталось {limit}/30
+    Обновление лимитов: {update_limit} (мск)
+    '''
+
+    @classmethod
+    def create_message_profile(cls, profile):
+        return cls.PROFILE.value.format(
+            tgid=profile.tgid,
+            code_tariff=profile.tariffs.code.value,
+            limit=profile.chatgpt_daily_limit,
+            update_limit=profile.update_daily_limits_time
+        )
+
 
 class AiModel(Enum):
     """Класс с названиями нейросетей"""
