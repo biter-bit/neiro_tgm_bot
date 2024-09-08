@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     PATH_WORK: str = os.getcwd()
     PATH_ENV: str = f'{PATH_WORK}/.env'
     TOKEN_TELEGRAM_BOT: str
+    OPENAI_API_KEY: str
+    USEAPI_API_KEY: str
 
     @property
     def url_connect_with_psycopg2(self):

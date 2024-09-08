@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram import types
-from utils.enum import AiModel, Messages
+from utils.enum import AiModelName, Messages
 from utils.db_api import async_session_db, get_all_ai_models
 from utils.models import Profile
 from sqlalchemy import select
@@ -9,7 +9,7 @@ from buttons.start_button import gen_main_kb
 choice_model_router = Router()
 
 
-@choice_model_router.message(lambda message: message.text in [model.value for model in AiModel] + [f'✅ {model.value}' for model in AiModel])
+@choice_model_router.message(lambda message: message.text in [model.value for model in AiModelName] + [f'✅ {model.value}' for model in AiModelName])
 async def handle_ai_model(message: types.Message, user_profile: str):
     """Обработай callback пользователя при нажатии на модель нейронки"""
 

@@ -1,4 +1,7 @@
 from enum import Enum
+import textwrap
+import locale
+from utils.features import format_date
 
 
 class MainButton(Enum):
@@ -8,49 +11,56 @@ class MainButton(Enum):
 
 class Messages(Enum):
     """Класс с сообщениями для пользователей"""
-    START = '''
-Это бот ChatGPT + MidJourney в Telegram. 
-По умолчанию выбрана нейросеть ChatGPT. Просто выберите нужную нейросеть или сразу напишите ваш запрос.
+    START = textwrap.dedent(
+        """
+        Это бот ChatGPT + MidJourney в Telegram. 
+        По умолчанию выбрана нейросеть ChatGPT. Просто выберите нужную нейросеть или сразу напишите ваш запрос.
+        
+        Команды
+        /start - перезапуск
+        /profile - профиль пользователя
+        /pay - купить подписку
+        /reset - сброс контекста
+        /help - помощь
+        /ask - задать вопрос (в группах)
+        
+        Подпишитесь на наш Telegram канал про технологии: @naebnet (https://t.me/+-P-yDHu8BuEyODIy)
+        """
+    )
 
-Команды
-/start - перезапуск
-/profile - профиль пользователя
-/pay - купить подписку
-/reset - сброс контекста
-/help - помощь
-/ask - задать вопрос (в группах)
-    
-Подпишитесь на наш Telegram канал про технологии: @naebnet (https://t.me/+-P-yDHu8BuEyODIy)
-    '''
-
-    PROFILE = '''
-    Это ваш профиль.
-    ID: {tgid}
-    Подписка: {code_tariff}
-    Чтобы добавить подписку нажмите /pay
-    
-    Лимиты
-    GPT-4o mini — осталось {limit}/30
-    Обновление лимитов: {update_limit} (мск)
-    '''
+    PROFILE = textwrap.dedent(
+        """
+        Это ваш профиль.
+        ID: {tgid}
+        Подписка: {code_tariff}
+        Чтобы добавить подписку нажмите /pay
+        
+        Лимиты
+        GPT-4o mini — осталось {limit}/20
+        Обновление лимитов: {update_limit}
+        """
+    )
 
     @classmethod
     def create_message_profile(cls, profile):
+        locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+        formating_date = format_date(profile.update_daily_limits_time)
         return cls.PROFILE.value.format(
             tgid=profile.tgid,
             code_tariff=profile.tariffs.code.value,
             limit=profile.chatgpt_daily_limit,
-            update_limit=profile.update_daily_limits_time
+            update_limit=formating_date
         )
 
 
-class AiModel(Enum):
+class AiModelName(Enum):
     """Класс с названиями нейросетей"""
     GPT_3_TURBO = "gpt-3.5-turbo-1106"
     GPT_4 = "gpt-4"
     GPT_4_TURBO = "gpt-4-1106-preview"
     GPT_4_VISION = "gpt-4-vision-preview"
     GPT_4_O = "gpt-4o"
+    GPT_4_O_MINI = "gpt-4o-mini"
     STABLE_DIFFUSION = "sd"
     MIDJORNEY = "mj"
     DALLE_2 = "dall-e-2"
@@ -58,7 +68,7 @@ class AiModel(Enum):
     YAGPT_LITE = "yandexgpt-lite"
     YAGPT = "yandexgpt"
     KANDINSKY = "kandinsky"
-    BARD = "bard"
+    GEMINI = "bard"
     CLAUDE_OPUS = "claude-3-opus-20240229"
     CLAUDE_SONNET = "claude-3-sonnet-20240229"
     CLAUDE_HAIKU = "claude-3-haiku-20240307"

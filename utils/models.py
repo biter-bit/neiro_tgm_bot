@@ -5,7 +5,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import datetime
 from sqlalchemy import text, ForeignKey, BIGINT, String
 from typing import Annotated, Optional
-from .enum import TariffCode, AiModel
+from .enum import TariffCode, AiModelName
 
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
@@ -149,7 +149,7 @@ class Profile(Base):
     tariff_id: Mapped[int | None] = mapped_column(ForeignKey("tariff.id", ondelete='SET NULL'),
                                                   nullable=True, default=None)
     ai_model_id: Mapped[int | None] = mapped_column(ForeignKey("ai_model.code", ondelete='SET NULL'),
-                                                 nullable=True, default="gpt-4")
+                                                 nullable=True, default="gpt-4o")
 
     # txt_model: Mapped[AiModel] = mapped_column(ForeignKey("ai_model.code", ondelete='SET NULL'), nullable=True,
     #                                            default=None)
@@ -157,8 +157,8 @@ class Profile(Base):
     #                                            default=None)
 
     token_balance: Mapped[Optional[str]]
-    update_daily_limits_time: Mapped[Optional[datetime.datetime]]
-    chatgpt_daily_limit: Mapped[Optional[int]]
+    update_daily_limits_time: Mapped[created]
+    chatgpt_daily_limit: Mapped[Optional[int]] = mapped_column(default=20)
     gemini_daily_limit: Mapped[Optional[int]]
     kandinsky_daily_limit: Mapped[Optional[int]]
     sd_daily_limit: Mapped[Optional[int]]
@@ -260,13 +260,22 @@ class ChatSession(Base):
     anonymous_chat: Mapped[Optional[bool]]
     folder_id: Mapped[int | None] = mapped_column(ForeignKey("chat_folder.id", ondelete="SET NULL"),
                                                     nullable=True, default=None)
-
     # main_session_id: Mapped["ChatSession"] = mapped_column(ForeignKey("chat_session.id", ondelete='SET NULL'))
 
     pinned: Mapped[Optional[bool]]
     int: Mapped[Optional[int]]
     created_at: Mapped[created]
     updated_at: Mapped[updated]
+
+    text_queries: Mapped[list["TextQuery"]] = relationship(
+        back_populates="chat_session"
+    )
+    image_queries: Mapped[list["ImageQuery"]] = relationship(
+        back_populates="chat_session"
+    )
+    video_queries: Mapped[list["VideoQuery"]] = relationship(
+        back_populates="chat_session"
+    )
 
 
 class ChatFolder(Base):
@@ -290,7 +299,8 @@ class TextQuery(Base):
     __tablename__ = "text_query"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    chat_session_id: Mapped[uuid.UUID] = mapped_column(nullable=True)
+    chat_session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chat_session.id", ondelete="CASCADE"),
+                                                       nullable=True, default=None)
     query: Mapped[Optional[str]] = mapped_column(nullable=True)
     answer: Mapped[Optional[str]] = mapped_column(nullable=True)
     from_group: Mapped[Optional[bool]] = mapped_column(nullable=False)
@@ -299,6 +309,10 @@ class TextQuery(Base):
     created_at: Mapped[created]
     updated_at: Mapped[updated]
 
+    chat_session: Mapped["ChatSession"] = relationship(
+        back_populates="text_queries"
+    )
+
 
 class ImageQuery(Base):
     """Класс представляет себя запрос, отправленный к модели генерации картинки и от нее"""
@@ -306,7 +320,8 @@ class ImageQuery(Base):
     __tablename__ = "image_query"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    chat_session_id: Mapped[uuid.UUID] = mapped_column(nullable=True)
+    chat_session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chat_session.id", ondelete="CASCADE"),
+                                                       nullable=True, default=None)
     query: Mapped[Optional[str]] = mapped_column(nullable=True)
     # index: Mapped[Optional[int]]
     type_query: Mapped[Optional[str]] = mapped_column(nullable=False)
@@ -319,6 +334,10 @@ class ImageQuery(Base):
     created_at: Mapped[created]
     updated_at: Mapped[updated]
 
+    chat_session: Mapped["ChatSession"] = relationship(
+        back_populates="image_queries"
+    )
+
 
 class VideoQuery(Base):
     """Класс представляет себя запрос, отправленный к видео модели и от нее"""
@@ -326,7 +345,8 @@ class VideoQuery(Base):
     __tablename__ = "video_query"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    chat_session_id: Mapped[uuid.UUID] = mapped_column(nullable=True)
+    chat_session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chat_session.id", ondelete="CASCADE"),
+                                                       nullable=True, default=None)
     query: Mapped[Optional[str]] = mapped_column(nullable=True)
     result: Mapped[Optional[str]] = mapped_column(nullable=True)
     task_number: Mapped[uuid.UUID] = mapped_column(nullable=True)
@@ -335,3 +355,7 @@ class VideoQuery(Base):
 
     created_at: Mapped[created]
     updated_at: Mapped[updated]
+
+    chat_session: Mapped["ChatSession"] = relationship(
+        back_populates="video_queries"
+    )
