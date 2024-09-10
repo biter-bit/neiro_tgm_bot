@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from utils.models import Profile
 from utils.enum import Messages
 from utils.db_api import get_all_ai_models
-from buttons.start_button import gen_main_kb
+from buttons.main_kb import gen_main_kb
 
 info_profile_router = Router()
 

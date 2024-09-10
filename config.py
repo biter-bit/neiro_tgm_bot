@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     TOKEN_TELEGRAM_BOT: str
     OPENAI_API_KEY: str
     USEAPI_API_KEY: str
+    RAPID_API_TOKEN: str
+    PROXY: str
+    OPENAI_BASE_URL: str
 
     @property
     def url_connect_with_psycopg2(self):

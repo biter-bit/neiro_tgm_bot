@@ -9,14 +9,14 @@ from utils.models import Profile
 
 from sqlalchemy.future import select
 
-start_router = Router()
+help_router = Router()
 
 
-@start_router.message(Command("start"))
-@start_router.message(lambda message: message.text == MainButton.START.value)
+@help_router.message(Command("help"))
 async def cmd_start(message: types.Message, user_profile: Profile):
-    """Обработай запрос при нажатии кнопки 'Перезапуск бота' и текста 'start'"""
-    commands = Messages.START.value
+    """Обработай запрос команды /help"""
+    commands = Messages.HELP.value
     ai_models = await get_all_ai_models()
     markup = await gen_main_kb(user_profile, ai_models)
+    await get_or_create_session(user_profile, user_profile.ai_model_id)
     await message.answer(commands, reply_markup=markup)

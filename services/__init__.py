@@ -1,5 +1,8 @@
-from openai import OpenAI, AsyncOpenAI
+from .openai import ChatGPT
+from .nlp_translator import Translator
+from .midjourney import MJ
 from config import settings
 
-openai_client = OpenAI(api_key=settings.OPENAI_API_KEY, base_url="https://apisbost.top/v1/")
-openai_client_async = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+chat_gpt = ChatGPT(token=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
+nlp_translator = Translator(token=settings.RAPID_API_TOKEN, proxy=settings.PROXY)
+midjourney_obj = MJ(token=settings.USEAPI_API_KEY)

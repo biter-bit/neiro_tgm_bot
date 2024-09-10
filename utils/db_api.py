@@ -55,6 +55,26 @@ async def get_text_messages_from_session(session_id: int, name_ai_model: str):
                 messages.append({"role": "assistant", "content": msg.answer})
         return messages
 
+async def replace_model_of_profile(profile: Profile, model: str):
+    """Измени модель для пользователя"""
+    async with async_session_db() as session:
+        profile_obj = await session.get(Profile, profile.id)
+        profile_obj.ai_model_id = model
+        await session.commit()
+        await session.refresh(profile_obj)
+        return profile_obj
+
+async def delete_context_from_session(session_id: int, profile: Profile) -> str:
+    """Удали выбранную сессию и создай новую"""
+    async with async_session_db() as session:
+        session_obj = await session.get(ChatSession, session_id)
+        if not session_obj:
+            return "Not object"
+        await session.delete(session_obj)
+        await session.commit()
+    await get_or_create_session(profile, profile.ai_model_id)
+    return "Ok"
+
 async def get_or_create_session(profile: Profile, model: str):
     """Создай сессию для пользователя если ее нет"""
     async with async_session_db() as session:
@@ -71,12 +91,28 @@ async def get_or_create_session(profile: Profile, model: str):
             session_chat = ChatSession(
                 profile_id=profile.id,
                 ai_model_id=model,
-                name='Новый диалог 1'
+                name='Новый диалог 1',
             )
             session.add(session_chat)
             await session.commit()
             await session.refresh(session_chat)
         return session_chat
+
+async def active_generic_in_session(chat_session_id: int):
+    """Включи статус генерации в указанной сессии"""
+    async with async_session_db() as session:
+        chat_session = await session.get(ChatSession, chat_session_id)
+        chat_session.active_generation = True
+        await session.commit()
+        return "Ok"
+
+async def deactivate_generic_in_session(chat_session_id: int):
+    """Выключи статус генерации в указанной сессии"""
+    async with async_session_db() as session:
+        chat_session = await session.get(ChatSession, chat_session_id)
+        chat_session.active_generation = False
+        await session.commit()
+        return "Ok"
 
 async def get_or_create_profile(tgid: int, username: str, first_name: str, last_name: str, url: str):
     """Создай пользователя если его нет в бд"""

@@ -256,7 +256,7 @@ class ChatSession(Base):
                                                    nullable=True, default=None)
     profile_id: Mapped[int | None] = mapped_column(ForeignKey("profile.id", ondelete="CASCADE"),
                                                   nullable=True, default=None)
-    active_generation: Mapped[Optional[bool]]
+    active_generation: Mapped[Optional[bool]] = mapped_column(default=False)
     anonymous_chat: Mapped[Optional[bool]]
     folder_id: Mapped[int | None] = mapped_column(ForeignKey("chat_folder.id", ondelete="SET NULL"),
                                                     nullable=True, default=None)
