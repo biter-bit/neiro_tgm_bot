@@ -1,6 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
-from utils.enum import MainButton, AiModelName
-from utils.models import Profile
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 async def gen_pay_inline_kb() -> InlineKeyboardMarkup:
     """Создай инлайн клавиатуру для оплаты подписки"""

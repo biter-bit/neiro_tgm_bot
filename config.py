@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     RAPID_API_TOKEN: str
     PROXY: str
     OPENAI_BASE_URL: str
+    ROBOKASSA_LOGIN: str
+    ROBOKASSA_PASS_1: str
+    ROBOKASSA_PASS_2: str
 
     @property
     def url_connect_with_psycopg2(self):

@@ -1,12 +1,12 @@
 from enum import Enum
 import textwrap
 import locale
-from utils.features import format_date
+from datetime import datetime
 
 
-class MainButton(Enum):
+class NameButtons(Enum):
     """Класс с названиями кнопок"""
-    START = "Перезапуск бота"
+    START = "Главное меню"
 
 
 class Messages(Enum):
@@ -23,12 +23,10 @@ class Messages(Enum):
         /reset - сброс контекста
         /help - помощь
         /ask - задать вопрос (в группах)
-        
-        Подпишитесь на наш Telegram канал про технологии: @naebnet (https://t.me/+-P-yDHu8BuEyODIy)
         """
     )
 
-    PROFILE = textwrap.dedent(
+    _PROFILE_FREE = textwrap.dedent(
         """
         Это ваш профиль.
         ID: {tgid}
@@ -36,8 +34,27 @@ class Messages(Enum):
         Чтобы добавить подписку нажмите /pay
         
         Лимиты
-        GPT-4o mini — осталось {limit}/20
+        GPT-4o mini — осталось {available}/{limit}
+        GPT-4o - доступен только по подписке (/pay)
+        Midjourney - доступен только по подписке (/pay)
+        
         Обновление лимитов: {update_limit}
+        
+        Остаток токенов: {count_tokens}
+        """
+    )
+
+    _PROFILE_NOT_FREE = textwrap.dedent(
+        """
+        Это ваш профиль.
+        ID: {tgid}
+        Подписка: {code_tariff}
+        Чтобы добавить подписку нажмите /pay
+    
+        Лимиты
+        Доступны все нейросети без ограничений!
+        
+        Остаток токенов: {count_tokens}
         """
     )
 
@@ -91,23 +108,53 @@ class Messages(Enum):
 
         - GPT-4o mini — безлимитно;
         - GPT-4o — 50 запросов в день; 
-        - GPT-4 Vision (Распознавание изображений);
-        - Midjourney v5.2 — 25 запросов в день;
-        - Midjourney v6.0 — 10 запросов в день.
+        - Midjourney v6.1 — 10 запросов в день.
         Стоимость: 499р / за 30д
         """
     )
 
+    CHOICE = textwrap.dedent(
+        """
+        Модель {model_name} выбрана!
+        """
+    )
+
+    @classmethod
+    def create_message_choice_model(cls, model_name: str):
+        return cls.CHOICE.value.format(
+            model_name=model_name
+        )
+
+    @staticmethod
+    def format_date(dt: datetime) -> str:
+        """Верни дату в нужном формате
+
+        Пример: 'среда, 11 сентября 2024 г. в 15:20 (мск)'
+        """
+        formating_date = dt.strftime('%A, %d %B %Y г. в %H:%M')
+        formating_date = formating_date.lower().replace(" 0", " ")
+        formating_date += ' (мск)'
+        return formating_date
+
     @classmethod
     def create_message_profile(cls, profile):
         locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
-        formating_date = format_date(profile.update_daily_limits_time)
-        return cls.PROFILE.value.format(
-            tgid=profile.tgid,
-            code_tariff=profile.tariffs.code.value,
-            limit=profile.chatgpt_daily_limit,
-            update_limit=formating_date
-        )
+        formating_date = cls.format_date(profile.update_daily_limits_time)
+        if profile.tariffs.name == 'Free':
+            return cls._PROFILE_FREE.value.format(
+                tgid=profile.tgid,
+                code_tariff=profile.tariffs.code.value,
+                available=profile.chatgpt_daily_limit,
+                limit=profile.tariffs.chatgpt_daily_limit,
+                update_limit=formating_date,
+                count_tokens=profile.token_balance
+            )
+        else:
+            return cls._PROFILE_NOT_FREE.value.format(
+                tgid=profile.tgid,
+                code_tariff=profile.tariffs.code.value,
+                count_tokens=profile.token_balance
+            )
 
 
 class AiModelName(Enum):

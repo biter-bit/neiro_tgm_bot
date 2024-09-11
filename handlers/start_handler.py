@@ -2,7 +2,7 @@ from aiogram.filters import Command
 from aiogram import types, Router
 
 from buttons.main_kb import gen_main_kb
-from utils.enum import MainButton, Messages
+from utils.enum import NameButtons, Messages
 
 from utils.db_api import async_session_db, get_all_ai_models, get_or_create_session
 from utils.models import Profile
@@ -13,7 +13,7 @@ start_router = Router()
 
 
 @start_router.message(Command("start"))
-@start_router.message(lambda message: message.text == MainButton.START.value)
+@start_router.message(lambda message: message.text == NameButtons.START.value)
 async def cmd_start(message: types.Message, user_profile: Profile):
     """Обработай запрос при нажатии кнопки 'Перезапуск бота' и текста 'start'"""
     commands = Messages.START.value

@@ -18,4 +18,4 @@ async def choice_ai_model_for_profile(message: types.Message, user_profile: Prof
     ai_models = await get_all_ai_models()
     markup = await gen_main_kb(profile_obj, ai_models)
     await get_or_create_session(profile_obj, profile_obj.ai_model_id)
-    await message.answer(Messages.START.value, reply_markup=markup)
+    await message.answer(Messages.create_message_choice_model(profile_obj.ai_model_id), reply_markup=markup)

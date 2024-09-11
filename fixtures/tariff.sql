@@ -82,7 +82,7 @@ ALTER TABLE ONLY public.tariff ALTER COLUMN id SET DEFAULT nextval('public.tarif
 --
 
 COPY public.tariff (id, name, code, description, chatgpt_daily_limit, gemini_daily_limit, kandinsky_daily_limit, sd_daily_limit, token_balance, days, price, price_usd, price_ton, price_stars, is_active, is_trial, created_at, updated_at) FROM stdin;
-1	Free	FREE	Бесплатный тариф	0	40	10	10	0	0	0	0	0	0	f	f	2024-09-01 18:13:40.328912	2024-09-01 18:13:40.328912
+1	Free	FREE	Бесплатный тариф	20	40	10	10	0	0	0	0	0	0	f	f	2024-09-01 18:13:40.328912	2024-09-01 18:13:40.328912
 6	1₽ / 500 токенов / На 24 часа	TRIAL_500	Пробный тариф 500	-1	0	0	0	0	1	1	0	0	1	f	t	2024-09-01 18:13:40.337639	2024-09-01 18:13:40.337639
 7	1₽ / 1500 токенов / На 24 часа	TRIAL_1500	Пробный тариф 1500	-1	0	0	0	0	1	1	0	0	1	f	t	2024-09-01 18:13:40.339171	2024-09-01 18:13:40.339171
 8	1₽ / 3000 токенов / На 24 часа	TRIAL_3000	Пробный тариф 3000	-1	0	0	0	0	1	1	0	0	1	f	t	2024-09-01 18:13:40.340452	2024-09-01 18:13:40.340452

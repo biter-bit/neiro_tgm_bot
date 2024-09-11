@@ -156,12 +156,12 @@ class Profile(Base):
     # img_model: Mapped[AiModel] = mapped_column(ForeignKey("ai_model.code", ondelete='SET NULL'), nullable=True,
     #                                            default=None)
 
-    token_balance: Mapped[Optional[str]]
+    token_balance: Mapped[Optional[int]] = mapped_column(default=0)
     update_daily_limits_time: Mapped[created]
     chatgpt_daily_limit: Mapped[Optional[int]] = mapped_column(default=20)
-    gemini_daily_limit: Mapped[Optional[int]]
-    kandinsky_daily_limit: Mapped[Optional[int]]
-    sd_daily_limit: Mapped[Optional[int]]
+    gemini_daily_limit: Mapped[Optional[int]] = mapped_column(default=20)
+    kandinsky_daily_limit: Mapped[Optional[int]] = mapped_column(default=10)
+    sd_daily_limit: Mapped[Optional[int]] = mapped_column(default=10)
     language: Mapped[Optional[str]]
     referral_link_id: Mapped[int | None] = mapped_column(
         ForeignKey(
@@ -195,6 +195,7 @@ class Profile(Base):
     updated_at: Mapped[updated]
 
     tariffs: Mapped["Tariff"] = relationship()
+    ai_models_id: Mapped["AiModel"] = relationship()
 
 
 class Role(Base):

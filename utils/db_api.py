@@ -4,7 +4,9 @@ from sqlalchemy import create_engine, text
 from config import settings
 from sqlalchemy.orm import sessionmaker, joinedload, selectinload
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from .models import Base, Profile, AiModel, ChatSession, TextQuery
+
+from services import chat_gpt
+from .models import Base, Profile, AiModel, ChatSession, TextQuery, Tariff
 from sqlalchemy.future import select
 import subprocess
 
@@ -114,6 +116,22 @@ async def deactivate_generic_in_session(chat_session_id: int):
         await session.commit()
         return "Ok"
 
+async def subtracting_tokens_from_profile_balance(profile_id: int, deductible_token: int) -> str:
+    """Удали кол-во токенов запроса"""
+    async with async_session_db() as session:
+        profile_obj = await session.get(Profile, profile_id)
+        profile_obj.token_balance -= deductible_token
+        await session.commit()
+        return "Ok"
+
+async def subtracting_count_request_to_model_chatgpt_4o_mini(profile_id: int) -> str:
+    """Вычти кол-во допустимых запросов к модели chatgpt_4o_mini на 1 для пользователя."""
+    async with async_session_db() as session:
+        profile_id = await session.get(Profile, profile_id)
+        profile_id.chatgpt_daily_limit -= 1
+        await session.commit()
+        return "Ok"
+
 async def get_or_create_profile(tgid: int, username: str, first_name: str, last_name: str, url: str):
     """Создай пользователя если его нет в бд"""
     async with async_session_db() as session:
@@ -121,6 +139,7 @@ async def get_or_create_profile(tgid: int, username: str, first_name: str, last_
             select(Profile)
             .filter_by(tgid=tgid)
             .options(joinedload(Profile.tariffs))
+            .options(joinedload(Profile.ai_models_id))
         )
         result = await session.execute(query)
         profile = result.unique().scalars().first()
@@ -138,6 +157,12 @@ async def get_or_create_profile(tgid: int, username: str, first_name: str, last_
             await session.commit()
             await session.refresh(profile)
         return profile
+
+async def get_tariff(tariff_id):
+    """Получи тариф"""
+    async with async_session_db() as session:
+        tariff_obj = await session.get(Tariff, tariff_id)
+        return tariff_obj
 
 async def get_all_ai_models() -> dict:
     """Получи все модели нейронок из бд в виде словаря"""
