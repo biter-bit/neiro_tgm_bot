@@ -5,8 +5,8 @@ from config import settings
 from sqlalchemy.orm import sessionmaker, joinedload, selectinload
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from services import chat_gpt
-from .models import Base, Profile, AiModel, ChatSession, TextQuery, Tariff
+# from services import chat_gpt
+from .models import Base, Profile, AiModel, ChatSession, TextQuery, Tariff, ImageQuery
 from sqlalchemy.future import select
 import subprocess
 
@@ -33,12 +33,25 @@ async def create_text_query(query: str, chat_session_id):
             status="in_process",
             query=query,
             chat_session_id=chat_session_id,
-            from_group=False
         )
         session.add(text_query)
         await session.commit()
         await session.refresh(text_query)
         return text_query
+
+async def create_image_query(query: str, chat_session_id: int, jobid: str):
+    """Подготовь запрос генерации картинки"""
+    async with async_session_db() as session:
+        image_query = ImageQuery(
+            status="in_process",
+            query=query,
+            chat_session_id=chat_session_id,
+            jobid=jobid
+        )
+        session.add(image_query)
+        await session.commit()
+        await session.refresh(image_query)
+        return image_query
 
 async def get_text_messages_from_session(session_id: int, name_ai_model: str):
     """Верни список сообщений с нейронной сетью в сессии"""
@@ -60,7 +73,14 @@ async def get_text_messages_from_session(session_id: int, name_ai_model: str):
 async def replace_model_of_profile(profile: Profile, model: str):
     """Измени модель для пользователя"""
     async with async_session_db() as session:
-        profile_obj = await session.get(Profile, profile.id)
+        query = (
+            select(Profile)
+            .filter_by(tgid=profile.tgid)
+            .options(joinedload(Profile.tariffs))
+            .options(joinedload(Profile.ai_models_id))
+        )
+        result = await session.execute(query)
+        profile_obj = result.unique().scalars().first()
         profile_obj.ai_model_id = model
         await session.commit()
         await session.refresh(profile_obj)
@@ -85,7 +105,6 @@ async def get_or_create_session(profile: Profile, model: str):
             .filter_by(profile_id=profile.id, ai_model_id=model)
             .options(selectinload(ChatSession.text_queries))
             .options(selectinload(ChatSession.image_queries))
-            .options(selectinload(ChatSession.video_queries))
         )
         result = await session.execute(query)
         session_chat = result.unique().scalars().first()
@@ -116,11 +135,11 @@ async def deactivate_generic_in_session(chat_session_id: int):
         await session.commit()
         return "Ok"
 
-async def subtracting_tokens_from_profile_balance(profile_id: int, deductible_token: int) -> str:
+async def subtracting_count_request_to_model_chatgpt_4o(profile_id: int) -> str:
     """Удали кол-во токенов запроса"""
     async with async_session_db() as session:
         profile_obj = await session.get(Profile, profile_id)
-        profile_obj.token_balance -= deductible_token
+        profile_obj.chatgpt_4o_daily_limit -= 1
         await session.commit()
         return "Ok"
 
@@ -128,7 +147,15 @@ async def subtracting_count_request_to_model_chatgpt_4o_mini(profile_id: int) ->
     """Вычти кол-во допустимых запросов к модели chatgpt_4o_mini на 1 для пользователя."""
     async with async_session_db() as session:
         profile_id = await session.get(Profile, profile_id)
-        profile_id.chatgpt_daily_limit -= 1
+        profile_id.chatgpt_4o_mini_daily_limit -= 1
+        await session.commit()
+        return "Ok"
+
+async def subtracting_count_request_to_model_mj(profile_id: int) -> str:
+    """Вычти кол-во допустимых запросов к модели chatgpt_4o_mini на 1 для пользователя."""
+    async with async_session_db() as session:
+        profile_id = await session.get(Profile, profile_id)
+        profile_id.mj_daily_limit -= 1
         await session.commit()
         return "Ok"
 
@@ -150,7 +177,6 @@ async def get_or_create_profile(tgid: int, username: str, first_name: str, last_
                 first_name=first_name,
                 last_name=last_name,
                 url_telegram=url,
-                avatar_path=f"{settings.PATH_WORK}/images/profiles/default.jpg",
                 tariff_id=1
             )
             session.add(profile)

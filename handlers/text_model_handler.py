@@ -4,13 +4,15 @@ from utils.models import Profile
 from utils.enum import AiModelName
 from utils.db_api import (
     get_or_create_session, create_text_query, get_text_messages_from_session, save_message, active_generic_in_session,
-    deactivate_generic_in_session, delete_context_from_session, subtracting_tokens_from_profile_balance,
+    deactivate_generic_in_session, delete_context_from_session, subtracting_count_request_to_model_chatgpt_4o,
     subtracting_count_request_to_model_chatgpt_4o_mini
 )
 from services import chat_gpt
 from openai import BadRequestError
 from .image_model_handler import generate_image_model
 from utils.features import check_limits_for_free_tariff, check_balance_profile
+from aiogram.fsm.context import FSMContext
+from states.type_generation import TypeState
 
 text_router = Router()
 
@@ -18,11 +20,12 @@ text_models_openai = [
     AiModelName.GPT_4_O_MINI.value, AiModelName.GPT_4_O.value
 ]
 
-@text_router.message()
-async def generate_text_model(message: Message, user_profile: Profile):
+@text_router.message(TypeState.text)
+async def generate_text_model(message: Message, user_profile: Profile, state: FSMContext):
     """Обработай текстовые сообщения пользователей, которые являются prompt для текстовых нейронок"""
     session_profile = await get_or_create_session(user_profile, user_profile.ai_model_id)
     if session_profile.active_generation:
+        await message.delete()
         return await message.answer('Генерация активна')
 
     current_model = user_profile.ai_model_id
@@ -34,7 +37,7 @@ async def generate_text_model(message: Message, user_profile: Profile):
             return await message.answer("Вы превысили лимит запросов в сутки для этой модели!")
     else:
         if not check_balance_profile(user_profile):
-            return await message.answer("Пополните баланс токенов!")
+            return await message.answer("Пополните баланс!")
 
     try:
         if current_model in text_models_openai:
@@ -48,8 +51,8 @@ async def generate_text_model(message: Message, user_profile: Profile):
             await message.answer(f"{response.choices[0].message.content}")
             if user_profile.tariffs.name == "Free":
                 await subtracting_count_request_to_model_chatgpt_4o_mini(user_profile.id)
-            else:
-                await subtracting_tokens_from_profile_balance(user_profile.id, user_profile.ai_models_id.cost)
+            elif user_profile.tariffs.name != "Free" and user_profile.ai_models_id.code == "gpt-4o":
+                await subtracting_count_request_to_model_chatgpt_4o(user_profile.id)
             await deactivate_generic_in_session(session_profile.id)
         else:
             await generate_image_model(message, user_profile)

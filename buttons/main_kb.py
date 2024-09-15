@@ -11,7 +11,7 @@ def change_name_button(model: AiModelName, profile: Profile) -> str:
 async def gen_main_kb(user_profile, ai_models) -> ReplyKeyboardMarkup:
     """Верни основную клавиатуру бота телеграм"""
     button_start = KeyboardButton(text=NameButtons.START.value)
-    button_mj = KeyboardButton(text=change_name_button(ai_models[AiModelName.MIDJORNEY.value], user_profile))
+    button_mj = KeyboardButton(text=change_name_button(ai_models[AiModelName.MIDJOURNEY.value], user_profile))
     button_gpt_3 = KeyboardButton(text=change_name_button(ai_models[AiModelName.GPT_4_O.value], user_profile))
     button_gpt_4 = KeyboardButton(text=change_name_button(ai_models[AiModelName.GPT_4_O_MINI.value], user_profile))
     builder = ReplyKeyboardMarkup(keyboard=[
