@@ -1,6 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from utils.enum import NameButtons, AiModelName
-from utils.models import Profile
+from tgbot_app.db_api.models import Profile
 
 
 def change_name_button(model: AiModelName, profile: Profile) -> str:

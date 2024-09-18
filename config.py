@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     DB_PORT: int
     PATH_WORK: str = os.getcwd()
     PATH_ENV: str = f'{PATH_WORK}/.env'
+    LEVEL_LOGGER: str
     TOKEN_TELEGRAM_BOT: str
     OPENAI_API_KEY: str
     USEAPI_API_KEY: str

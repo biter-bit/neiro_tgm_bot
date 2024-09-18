@@ -4,8 +4,7 @@ from aiogram import types, Router, F
 from buttons.payment_kb import gen_pay_inline_kb
 from utils.enum import Messages
 
-from utils.db_api import get_or_create_session
-from utils.models import Profile
+from tgbot_app.db_api.models import Profile
 
 pay_router = Router()
 
@@ -15,7 +14,6 @@ async def subscription_pay(message: types.Message, user_profile: Profile):
     """Обработай запрос пользователя на получение подписки"""
     commands = Messages.PAY.value
     kb_inline = await gen_pay_inline_kb()
-    await get_or_create_session(user_profile, user_profile.ai_model_id)
     await message.answer(commands, reply_markup=kb_inline)
 
 @pay_router.callback_query(F.data == 'inline_btn2')

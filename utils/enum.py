@@ -156,6 +156,8 @@ class MjOption(Enum):
     VARIATION = 'variation'
     UPSAMPLE = 'upsample'
 
+class Errors(Enum):
+    """Класс с ошибками"""
 
 class AiModelName(Enum):
     """Класс с названиями нейросетей"""
