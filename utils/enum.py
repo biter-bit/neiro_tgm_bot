@@ -104,8 +104,9 @@ class Messages(Enum):
 
         - GPT-4o mini — безлимитно;
         - GPT-4o — 50 запросов в день; 
-        - Midjourney v6.1 — 10 запросов в день.
-        Стоимость: 499р / за 30д
+        - Midjourney — 35 запросов в день.
+        
+        Стоимость: 499р в месяц
         """
     )
 
@@ -156,14 +157,40 @@ class MjOption(Enum):
     VARIATION = 'variation'
     UPSAMPLE = 'upsample'
 
+class PaymentName(Enum):
+    """Класс со способами оплаты"""
+    STARS = "stars"
+    ROBOKASSA = "robokassa"
+
 class Errors(Enum):
     """Класс с ошибками"""
+    ERROR_ACTIVE_GENERATE = 'You have already activated generation. Wait for it to complete.'
+    ERROR_BALANCE_FREE = "Top up your balance. Available to you {limit_current_model} generations."
+    ERROR_BALANCE_PAID = "Top up your balance."
+    ERROR_TARIFF = "Model {} is not available for tariff {}"
+    NON_ERROR = "Ok"
+
+    @classmethod
+    def error_balance_free(cls, limit_current_model: str):
+        return cls.ERROR_BALANCE_FREE.value.format(limit_current_model)
+
+    @classmethod
+    def error_tariff(cls, ai_model_id: str, tariff_name: str):
+        return cls.ERROR_TARIFF.value.format(ai_model_id, tariff_name)
 
 class AiModelName(Enum):
     """Класс с названиями нейросетей"""
     GPT_4_O = "gpt-4o"
     GPT_4_O_MINI = "gpt-4o-mini"
-    MIDJOURNEY = "mj"
+    MIDJOURNEY_6_0 = "mj-6-0"
+    MIDJOURNEY_5_2 = "mj-5-2"
+
+    @classmethod
+    def get_list_value(cls):
+        result = []
+        for i in cls:
+            result.append(i.value)
+        return result
 
     @classmethod
     def get_enum_field_by_value(cls, value: str):

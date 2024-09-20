@@ -43,7 +43,8 @@ ALTER TABLE public.ai_model OWNER TO postgres;
 COPY public.ai_model (code, name, type, is_active, created_at, updated_at) FROM stdin;
 gpt-4o	GPT_4_O	text	t	2024-09-15 14:01:53.717622	2024-09-15 14:01:53.717622
 gpt-4o-mini	GPT_4_O_MINI	text	t	2024-09-15 14:01:53.722313	2024-09-15 14:01:53.722313
-mj	MIDJOURNEY	image	t	2024-09-15 14:01:53.724711	2024-09-15 14:01:53.724711
+mj-6-0	MIDJOURNEY_6_0	image	t	2024-09-15 14:01:53.724711	2024-09-15 14:01:53.724711
+mj-5-2	MIDJOURNEY_5_2	image	t	2024-09-15 14:01:53.724711	2024-09-15 14:01:53.724711
 \.
 
 

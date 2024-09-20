@@ -1,5 +1,5 @@
 from .async_api import (DBApiAsync, ApiTariffAsync, ApiProfileAsync, ApiAiModelAsync, ApiImageQueryAsync,
-                     ApiTextQueryAsync, ApiChatSessionAsync)
+                     ApiTextQueryAsync, ApiChatSessionAsync, ApiInvoiceAsync)
 from .sync_api import DBApiSync
 
 db_api_sync_obj = DBApiSync()
@@ -10,8 +10,9 @@ api_ai_model_async = ApiAiModelAsync()
 api_image_query_async = ApiImageQueryAsync()
 api_text_query_async = ApiTextQueryAsync()
 api_chat_session_async = ApiChatSessionAsync()
+api_invoice_async = ApiInvoiceAsync()
 
 __all__ = [
     db_api_sync_obj, db_api_async_obj, api_profile_async, api_tariff_async, api_ai_model_async, api_text_query_async,
-    api_chat_session_async, api_image_query_async
+    api_chat_session_async, api_image_query_async, api_invoice_async
 ]

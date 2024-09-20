@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from tgbot_app.db_api.models import Profile, ChatSession
 from PIL import Image
 import os
@@ -8,6 +6,46 @@ from tgbot_app.services import bot
 from utils.enum import AiModelName
 from uuid import UUID
 from db_api import api_profile_async, api_image_query_async
+import httpx
+import json
+from tgbot_app.utils.enum import Errors
+
+def create_photo(photo_byte: bytes, path_file: str):
+    """Создай фото из байтов"""
+    with open(path_file, 'wb') as image_file:
+        image_file.write(photo_byte)
+    return "Ok"
+
+async def make_request(url):
+    """Получи данные get запроса"""
+    try:
+        async with httpx.AsyncClient() as client:
+            result = await client.get(url)
+            return {
+                "status_code": result.status_code,
+                "result": result
+            }
+    except httpx.HTTPStatusError as e:
+        return {
+            "status_code": e.response.status_code,
+            "result": e.response.text
+        }
+
+    except httpx.TimeoutException:
+        return {
+            "status_code": 408,  # Тайм-аут
+            "result": "Запрос превышает время ожидания"
+        }
+    except httpx.RequestError as e:
+        return {
+            "status_code": 500,  # Общая ошибка запроса
+            "result": str(e)
+        }
+    except json.JSONDecodeError:
+        return {
+            "status_code": 500,  # Ошибка декодирования JSON
+            "result": "Ошибка декодирования JSON"
+        }
 
 async def finish_generation_image(url_photo: str, image_id: UUID, profile_id: int) -> str:
     """Сделай все основные действий после генерации"""
@@ -17,39 +55,31 @@ async def finish_generation_image(url_photo: str, image_id: UUID, profile_id: in
 
 def check_status_generic(session_profile: ChatSession) -> dict:
     """Проверь статус генерации у пользователя."""
-    access_allowed = True
-    status_denied = False
-    error_active_generation = f"You have already activated generation. Wait for it to complete."
     if not session_profile.active_generation:
-        return {"status": access_allowed, "result": "Ok"}
+        return {"status": Errors.NON_ERROR.name, "result": Errors.NON_ERROR.value}
     else:
-        return {"status": status_denied, "result": error_active_generation}
+        return {"status": Errors.ERROR_ACTIVE_GENERATE.name, "result": Errors.ERROR_ACTIVE_GENERATE.value}
 
 def check_access_for_generic(user_profile: Profile, session_profile: ChatSession) -> dict:
     """Проверь доступ пользователя для генерации."""
-    error_balance_free = f"Top up your balance. Available to you {user_profile.chatgpt_4o_mini_daily_limit} generations."
-    error_balance_not_free = f"Top up your balance."
-    error_tariff = f"Model {user_profile.ai_model_id} is not available for tariff {user_profile.tariffs.name}"
-    access_allowed = True
-    status_denied = False
 
     status_generic = check_status_generic(session_profile)
-    if not status_generic["status"]:
+    if status_generic["status"] != Errors.NON_ERROR.name:
         return status_generic
 
     if user_profile.tariffs.name == "Free":
         if user_profile.ai_model_id == AiModelName.GPT_4_O_MINI.value:
             if check_balance_profile(user_profile):
-                return {"status": access_allowed, "result": "Ok"}
+                return {"status": Errors.NON_ERROR.name, "result": Errors.NON_ERROR.value}
             else:
-                return {"status": status_denied, "result": error_balance_free}
+                return {"status": Errors.ERROR_BALANCE_FREE.name, "result": Errors.error_balance_free(str(user_profile.chatgpt_4o_mini_daily_limit))}
         else:
-            return {"status": status_denied, "result": error_tariff}
+            return {"status": Errors.ERROR_TARIFF.name, "result": Errors.error_tariff(user_profile.ai_model_id, user_profile.tariffs.name)}
     else:
         if check_balance_profile(user_profile):
-            return {"status": access_allowed, "result": "Ok"}
+            return {"status": Errors.NON_ERROR.name, "result": Errors.NON_ERROR.value}
         else:
-            return {"status": status_denied, "result": error_balance_not_free}
+            return {"status": Errors.ERROR_BALANCE_PAID.name, "result": Errors.ERROR_BALANCE_PAID.value}
 
 def get_bot():
     """Верни экземпляр бота"""
@@ -57,13 +87,13 @@ def get_bot():
 
 def check_limits_for_free_tariff(profile: Profile):
     """Проверь хватает ли пользователю c тарифом Free сделать запрос для генерации"""
-    if profile.ai_models_id.code == "gpt-4o-mini" and profile.chatgpt_4o_mini_daily_limit > 0:
+    if profile.ai_models_id.code == "gpt-4o-mini" and profile.chatgpt_4o_mini_daily_limit != 0:
         return True
     return False
 
 def check_balance_profile(profile: Profile) -> bool:
     """Проверь баланс пользователя и узнай, может он сделать запрос к нейросети или нет"""
-    if profile.ai_models_id.code == "mj" and profile.mj_daily_limit != 0:
+    if profile.ai_models_id.code in ("mj-6-0", "mj-5-2") and profile.mj_daily_limit != 0:
         return True
     elif profile.ai_models_id.code == "gpt-4o" and profile.chatgpt_4o_daily_limit != 0:
         return True

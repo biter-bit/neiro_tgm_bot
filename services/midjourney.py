@@ -1,5 +1,27 @@
 import httpx
 import json
+import logging
+
+
+def repeat_request(count_repeat: int):
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            result_task = None
+            for i in range(count_repeat):
+                try:
+                    result_task = await func(*args, **kwargs)
+                    if result_task.get('status_code') == 200:
+                        logging.info(f"Успешный запрос на {i + 1} попытке.")
+                        break
+                except Exception as e:
+                    logging.error(f"Ошибка на {i + 1} попытке: {e}")
+            else:
+                logging.warning(f"Все {count_repeat} попыток неудачны.")
+            return result_task
+
+        return wrapper
+
+    return decorator
 
 
 class MJ:
@@ -64,9 +86,10 @@ class MJ:
         params = {"jobid": content["jobid"]}
         return await self._make_request("GET", self.check_url, params=params)
 
-    async def async_generate_image(self, prompt: str) -> dict:
+    @repeat_request(10)
+    async def async_generate_image(self, prompt: str, version: str) -> dict:
         """Создать задачу по генерации картинки."""
         json_data = {
-            "prompt": f"{prompt} --v 6.0"
+            "prompt": f"{prompt} --v {version}"
         }
         return await self._make_request("POST", self.base_url, json_data=json_data)

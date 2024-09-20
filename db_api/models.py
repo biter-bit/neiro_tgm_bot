@@ -3,9 +3,9 @@ import uuid
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import datetime
-from sqlalchemy import text, ForeignKey, BIGINT, String
+from sqlalchemy import text, ForeignKey, BIGINT, String, Boolean
 from typing import Annotated, Optional
-from tgbot_app.utils.enum import TariffCode, AiModelName
+from tgbot_app.utils.enum import TariffCode, AiModelName, PaymentName
 
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
@@ -48,6 +48,22 @@ class Base(DeclarativeBase):
 #         secondary="ai_model_option"
 #     )
 
+class Invoice(Base):
+    __tablename__ = "invoice"
+
+    id: Mapped[intpk]
+    profile_id: Mapped[int | None] = mapped_column(ForeignKey("profile.id", ondelete="CASCADE"),
+                                                   nullable=True, default=None)
+    is_paid: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    tariff_id: Mapped[int | None] = mapped_column(ForeignKey("tariff.id", ondelete='SET NULL'),
+                                                  nullable=True, default=None)
+    provider: Mapped[PaymentName]
+    created_at: Mapped[created]
+    updated_at: Mapped[updated]
+    hash_transaction: Mapped[str | None]
+
+    profiles: Mapped["Profile"] = relationship()
+    tariffs: Mapped["Tariff"] = relationship()
 
 class AiModel(Base):
     """Класс представляет из себя модель нейронных сетей"""
@@ -102,7 +118,7 @@ class Profile(Base):
     tariff_id: Mapped[int | None] = mapped_column(ForeignKey("tariff.id", ondelete='SET NULL'),
                                                   nullable=True, default=None)
     ai_model_id: Mapped[int | None] = mapped_column(ForeignKey("ai_model.code", ondelete='SET NULL'),
-                                                 nullable=True, default="gpt-4o")
+                                                 nullable=True, default="gpt-4o-mini")
     update_daily_limits_time: Mapped[created]
     chatgpt_4o_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
     chatgpt_4o_mini_daily_limit: Mapped[Optional[int]] = mapped_column(default=30)
