@@ -3,10 +3,11 @@ from aiogram.types import LabeledPrice, PreCheckoutQuery, ContentType, Message
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 
-from buttons.payment_kb import gen_pay_inline_kb
+from buttons.payment_kb import gen_pay_inline_kb, gen_confirm_pay_kb
 from utils.enum import Messages, PaymentName
 from utils.callbacks import PaymentCallback
 from tgbot_app.db_api import api_invoice_async, api_profile_async, api_tariff_async
+from tgbot_app.services import robokassa_obj
 
 from tgbot_app.db_api.models import Profile, Invoice
 
@@ -41,8 +42,17 @@ async def payment_stars_handler(callback: types.CallbackQuery, user_profile: Pro
     await callback.answer()
 
 @pay_router.callback_query(PaymentCallback.filter(F.option == PaymentName.ROBOKASSA))
-async def payment_stars_handler(callback: types.CallbackQuery, user_profile: Profile, callback_data: PaymentCallback):
-    await callback.message.answer('Ссылка для оплаты')
+async def payment_robokassa_handler(callback: types.CallbackQuery, user_profile: Profile, callback_data: PaymentCallback):
+    tariff = await api_tariff_async.get_tariff(2)
+    invoice = await api_invoice_async.create_invoice(
+        profile_id=user_profile.id, tariff_id=tariff.id, provider=PaymentName.STARS
+    )
+    description = f"Оплата подписки PREMIUM {tariff.price_rub}"
+    redirect_url = robokassa_obj.gen_pay_url(
+        user_id=user_profile.id, inv_id=invoice.id, tariff_desc=tariff.name, price=tariff.price_rub, recurring=True
+    )
+    markup = await gen_confirm_pay_kb(tariff=tariff, redirect_url=redirect_url)
+    await callback.message.answer(text=description, reply_markup=markup, disable_web_page_preview=True)
 
 @pay_router.pre_checkout_query()
 async def pre_checkout_handler(query: PreCheckoutQuery):

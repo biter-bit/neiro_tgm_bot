@@ -226,17 +226,19 @@ class ApiProfileAsync(DBApiAsync):
         async with self.async_session_db() as session:
             profile_id = await session.get(Profile, profile_id)
             profile_id.mj_daily_limit -= 1
+            profile_id.count_request += 1
             await session.commit()
             return "Ok"
 
     async def subtracting_count_request_to_model_gpt(self, profile_id: int, model_id: str) -> str:
         """Вычти кол-во допустимых запросов к модели chatgpt_4o_mini на 1 для пользователя."""
         async with self.async_session_db() as session:
-            profile_id = await session.get(Profile, profile_id)
+            profile = await session.get(Profile, profile_id)
             if model_id == AiModelName.GPT_4_O.value:
-                profile_id.chatgpt_4o_daily_limit -= 1
+                profile.chatgpt_4o_daily_limit -= 1
             elif model_id == AiModelName.GPT_4_O_MINI.value:
-                profile_id.chatgpt_4o_mini_daily_limit -= 1
+                profile.chatgpt_4o_mini_daily_limit -= 1
+            profile.count_request += 1
             await session.commit()
             return "Ok"
 
@@ -262,7 +264,14 @@ class ApiProfileAsync(DBApiAsync):
                 )
                 session.add(profile)
                 await session.commit()
-                await session.refresh(profile)
+                query = (
+                    select(Profile)
+                    .filter_by(tgid=tgid)
+                    .options(joinedload(Profile.tariffs))
+                    .options(joinedload(Profile.ai_models_id))
+                )
+                result = await session.execute(query)
+                profile = result.unique().scalars().first()
             return profile
 
     async def update_subscription_profile(self, profile_id: int, tariff_id: int):

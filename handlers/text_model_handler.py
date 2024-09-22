@@ -19,7 +19,7 @@ text_models_openai = [
 ]
 
 @text_router.message(TypeState.text)
-async def generate_text_model(message: Message, user_profile: Profile, state: FSMContext, session_profile: ChatSession):
+async def generate_text_model(message: Message, user_profile: Profile, session_profile: ChatSession):
     """Обработай текстовые сообщения пользователей, которые являются prompt для текстовых нейронок"""
     if user_profile.ai_model_id in text_models_openai:
         if session_profile.active_generation:
@@ -49,7 +49,7 @@ async def generate_text_model(message: Message, user_profile: Profile, state: FS
                     await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id, user_profile.ai_model_id)
                 await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
             else:
-                await generate_image_model(message, user_profile, state)
+                await generate_image_model(message, user_profile)
         except BadRequestError as error:
             await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
             await api_chat_session_async.delete_context_from_session(session_profile.id, user_profile)

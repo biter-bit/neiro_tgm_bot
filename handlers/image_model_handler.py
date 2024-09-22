@@ -154,7 +154,7 @@ async def generate_variation_image_model(query: CallbackQuery, user_profile: Pro
 
         path_result = f"{settings.PATH_WORK}/mj_results/{name_file}"
         create_photo(photo_byte=result["result"].content, path_file=path_result)
-        path_cut_photo = get_image_part(path_result, int(text_button), f'{settings.PATH_WORK}/mj_results/',
+        path_cut_photo = get_image_part(path_result, callback_data.index, f'{settings.PATH_WORK}/mj_results/',
                                      f"{text_button} - {name_file}")
 
         if path_cut_photo:

@@ -103,6 +103,7 @@ class Tariff(Base):
     created_at: Mapped[created]
     updated_at: Mapped[updated]
 
+    profiles: Mapped["Profile"] = relationship(back_populates="tariffs")
 
 class Profile(Base):
     """Класс представляет собой профиль пользователя бота"""
@@ -123,13 +124,17 @@ class Profile(Base):
     chatgpt_4o_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
     chatgpt_4o_mini_daily_limit: Mapped[Optional[int]] = mapped_column(default=30)
     mj_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
+    count_request: Mapped[int | None] = mapped_column(default=0)
     # midjourney_6_0_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
     # midjourney_5_2_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
+
+    is_staff: Mapped[bool] = mapped_column(default=False)
+    is_admin: Mapped[bool] = mapped_column(default=False)
 
     created_at: Mapped[created]
     updated_at: Mapped[updated]
 
-    tariffs: Mapped["Tariff"] = relationship()
+    tariffs: Mapped["Tariff"] = relationship(back_populates="profiles")
     ai_models_id: Mapped["AiModel"] = relationship()
 
 

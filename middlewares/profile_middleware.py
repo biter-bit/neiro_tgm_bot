@@ -10,11 +10,11 @@ class ProfileMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-        event: Message,
+        event: Message | CallbackQuery,
         data: Dict[str, Any],
     ) -> Any:
         """Создай пользователя, если его нет в базе данных"""
-        user = event.event.from_user
+        user = event.from_user
         profile = await api_profile_async.get_or_create_profile(
             tgid=user.id,
             username=user.username,
@@ -22,8 +22,8 @@ class ProfileMiddleware(BaseMiddleware):
             last_name=user.last_name,
             url=user.url
         )
-        if isinstance(event.event, Message) and event.event.text in AiModelName.get_list_value():
-            session_profile = await api_chat_session_async.get_or_create_session(profile, event.event.text)
+        if isinstance(event, Message) and event.text in AiModelName.get_list_value():
+            session_profile = await api_chat_session_async.get_or_create_session(profile, event.text)
         else:
             session_profile = await api_chat_session_async.get_or_create_session(profile, profile.ai_model_id)
         data['user_profile'] = profile

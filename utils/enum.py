@@ -8,6 +8,12 @@ class NameButtons(Enum):
     """Класс с названиями кнопок"""
     START = "Главное меню"
 
+    @classmethod
+    def get_list_value(cls):
+        result = []
+        for i in cls:
+            result.append(i.value)
+        return result
 
 class Messages(Enum):
     """Класс с сообщениями для пользователей"""

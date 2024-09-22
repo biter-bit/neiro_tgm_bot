@@ -32,7 +32,7 @@ class Robokassa:
         )
 
     def gen_payment_data(
-        self, user_id: int | str, inv_id: int, price: int, tariff_desc, recurring: bool, mother_inv_id: int = None
+        self, user_id: int | str, inv_id: int, price: int, tariff_desc, recurring: bool = True, mother_inv_id: int = None
     ) -> dict:
         receipt = self.gen_receipt(price=price, tariff_desc=tariff_desc)
 
@@ -42,7 +42,7 @@ class Robokassa:
             "invoiceID": inv_id,
             "Description": f"{tariff_desc} | {user_id}",
             "SignatureValue": self.calc_signature(self.login, price, inv_id, receipt, self.password_1),
-            "Recurring": recurring,
+            "Recurring": "true",
             "Receipt": receipt,
         }
 
