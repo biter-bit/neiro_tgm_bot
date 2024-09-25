@@ -46,7 +46,7 @@ async def check_task_mj(message: Message, result_task_generic: dict, user_profil
                 reply_markup=inline_kb
             )
             await finish_generation_image(
-                url_photo=result_task["result"]['attachments'][0]['url'], profile_id=user_profile.id,
+                url_photo=result_task["result"]['attachments'][0]['url'], profile=user_profile,
                 image_id=image_query.id
             )
             break

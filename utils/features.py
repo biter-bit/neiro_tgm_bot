@@ -47,10 +47,11 @@ async def make_request(url):
             "result": "Ошибка декодирования JSON"
         }
 
-async def finish_generation_image(url_photo: str, image_id: UUID, profile_id: int) -> str:
+async def finish_generation_image(url_photo: str, image_id: UUID, profile: Profile) -> str:
     """Сделай все основные действий после генерации"""
     await api_image_query_async.save_answer_query(url_photo, image_id)
-    await api_profile_async.subtracting_count_request_to_model_mj(profile_id)
+    if profile.mj_daily_limit > 0:
+        await api_profile_async.subtracting_count_request_to_model_mj(profile.id)
     return "Ok"
 
 def check_status_generic(session_profile: ChatSession) -> dict:
@@ -88,6 +89,8 @@ def get_bot():
 def check_limits_for_free_tariff(profile: Profile):
     """Проверь хватает ли пользователю c тарифом Free сделать запрос для генерации"""
     if profile.ai_models_id.code == "gpt-4o-mini" and profile.chatgpt_4o_mini_daily_limit != 0:
+        return True
+    elif profile.ai_models_id.code == "gpt-4o" and profile.chatgpt_4o_daily_limit != 0:
         return True
     return False
 

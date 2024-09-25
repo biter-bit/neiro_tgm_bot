@@ -42,8 +42,9 @@ class Robokassa:
             "invoiceID": inv_id,
             "Description": f"{tariff_desc} | {user_id}",
             "SignatureValue": self.calc_signature(self.login, price, inv_id, receipt, self.password_1),
-            "Recurring": "true",
+            "Recurring": "false",
             "Receipt": receipt,
+            "IsTest": 1
         }
 
         if mother_inv_id:

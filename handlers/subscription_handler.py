@@ -49,7 +49,7 @@ async def payment_robokassa_handler(callback: types.CallbackQuery, user_profile:
     )
     description = f"Оплата подписки PREMIUM {tariff.price_rub}"
     redirect_url = robokassa_obj.gen_pay_url(
-        user_id=user_profile.id, inv_id=invoice.id, tariff_desc=tariff.name, price=tariff.price_rub, recurring=True
+        user_id=user_profile.id, inv_id=invoice.id, tariff_desc=tariff.name, price=1, recurring=True
     )
     markup = await gen_confirm_pay_kb(tariff=tariff, redirect_url=redirect_url)
     await callback.message.answer(text=description, reply_markup=markup, disable_web_page_preview=True)
