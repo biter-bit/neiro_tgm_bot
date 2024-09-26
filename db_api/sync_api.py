@@ -1,7 +1,7 @@
 from db_api.interface_api import DataBaseApiInterface
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from tgbot_app.db_api.models import Base
+from db_api.models import Base
 import subprocess
 from config import settings
 

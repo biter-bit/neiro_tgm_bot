@@ -1,8 +1,8 @@
 import asyncio
 from handlers import main_router
-from tgbot_app.db_api import db_api_sync_obj
+from db_api import db_api_sync_obj
 from middlewares import ProfileMiddleware, MainMiddleware, RedirectGroupMiddleware
-from tgbot_app.services import bot, dp
+from services import bot, dp
 
 async def main():
     """Запусти бота"""

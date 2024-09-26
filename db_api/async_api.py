@@ -2,11 +2,11 @@ from db_api.interface_api import DataBaseApiInterface
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from config import settings
 from db_api.models import updated
-from tgbot_app.db_api.models import Profile, AiModel, ChatSession, TextQuery, Tariff, ImageQuery, Invoice
+from db_api.models import Profile, AiModel, ChatSession, TextQuery, Tariff, ImageQuery, Invoice
 from uuid import UUID
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload, selectinload
-from tgbot_app.utils.enum import PaymentName
+from utils.enum import PaymentName
 
 from utils.enum import AiModelName
 

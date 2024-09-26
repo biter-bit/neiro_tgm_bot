@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from utils.callbacks import PaymentCallback
 from utils.enum import PaymentName
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from tgbot_app.db_api.models import Profile, Tariff
+from db_api.models import Profile, Tariff
 
 async def gen_pay_inline_kb() -> InlineKeyboardMarkup:
     """Создай инлайн клавиатуру для оплаты подписки"""

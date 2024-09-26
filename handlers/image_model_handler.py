@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, FSInputFile, URLInputFile, CallbackQuery
 
 from db_api.models import ImageQuery
-from tgbot_app.db_api.models import Profile, ChatSession
+from db_api.models import Profile, ChatSession
 from utils.enum import AiModelName, MjOption
 from db_api import api_chat_session_async, api_profile_async, api_image_query_async
 from utils.features import (finish_generation_image, get_image_part, create_safe_filename, check_access_for_generic,
@@ -13,10 +13,10 @@ from states.type_generation import TypeState
 import asyncio
 from utils.callbacks import MJCallback
 from buttons.mjoption_ib import create_inline_kb_for_image
-from tgbot_app import settings
-from tgbot_app.services import logger
+from config import settings
+from services import logger
 import re
-from tgbot_app.utils.enum import Errors
+from utils.enum import Errors
 
 image_router = Router()
 

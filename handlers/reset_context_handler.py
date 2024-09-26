@@ -4,7 +4,7 @@ from aiogram import types, Router
 from utils.enum import Messages
 
 from db_api import api_chat_session_async
-from tgbot_app.db_api.models import Profile
+from db_api.models import Profile
 
 reset_router = Router()
 

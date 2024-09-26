@@ -1,14 +1,14 @@
-from tgbot_app.db_api.models import Profile, ChatSession
+from db_api.models import Profile, ChatSession
 from PIL import Image
 import os
 import hashlib
-from tgbot_app.services import bot
+from services import bot
 from utils.enum import AiModelName
 from uuid import UUID
 from db_api import api_profile_async, api_image_query_async
 import httpx
 import json
-from tgbot_app.utils.enum import Errors
+from utils.enum import Errors
 
 def create_photo(photo_byte: bytes, path_file: str):
     """Создай фото из байтов"""

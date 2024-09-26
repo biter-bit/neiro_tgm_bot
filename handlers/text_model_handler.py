@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import Message
 
 from db_api.models import ChatSession
-from tgbot_app.db_api.models import Profile
+from db_api.models import Profile
 from utils.enum import AiModelName
 from db_api import api_chat_session_async, api_text_query_async, api_profile_async
 from services import chat_gpt

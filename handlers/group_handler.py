@@ -1,14 +1,14 @@
-from aiogram import Router, types
+from aiogram import Router, types, enums
 from aiogram.filters import Command
-from tgbot_app.handlers.text_model_handler import generate_text_model
+from handlers.text_model_handler import generate_text_model
 from db_api import api_chat_session_async, api_profile_async
-from tgbot_app.utils.enum import AiModelName
+from utils.enum import AiModelName
 from aiogram.types import Message
 from aiogram import Router
 from aiogram.types import Message
 
 from db_api.models import ChatSession
-from tgbot_app.db_api.models import Profile
+from db_api.models import Profile
 from utils.enum import AiModelName
 from db_api import api_chat_session_async, api_text_query_async, api_profile_async
 from services import chat_gpt
@@ -27,55 +27,58 @@ text_models_openai = [
 @ask_router.message(Command("ask"))
 async def generate_text_in_group(message: types.Message):
     """Обработай генерацию в группе"""
-    user = message.from_user
-    user_profile = await api_profile_async.get_or_create_profile(
-        tgid=user.id,
-        username=user.username,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        url=user.url
-    )
-    session_profile = await api_chat_session_async.get_or_create_session(user_profile, user_profile.ai_model_id)
-    new_text = message.text.removeprefix('/ask').strip()
+    if message.chat.type != enums.ChatType.PRIVATE:
+        user = message.from_user
+        user_profile = await api_profile_async.get_or_create_profile(
+            tgid=user.id,
+            username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            url=user.url
+        )
+        session_profile = await api_chat_session_async.get_or_create_session(user_profile, user_profile.ai_model_id)
+        new_text = message.text.removeprefix('/ask').strip()
 
-    if user_profile.ai_model_id in text_models_openai:
-        if session_profile.active_generation:
-            await message.delete()
-            return await message.answer('Генерация активна')
+        if user_profile.ai_model_id in text_models_openai:
+            if session_profile.active_generation:
+                await message.delete()
+                return await message.answer('Генерация активна')
 
-        current_model = user_profile.ai_model_id
+            current_model = user_profile.ai_model_id
 
-        if user_profile.tariffs.name == "Free" and user_profile.ai_model_id == "gpt-4o":
-            return await message.answer("Для доступа к этой модели поменяйте тариф!")
-        if not check_limits_for_free_tariff(user_profile):
-            return await message.answer("Вы превысили лимит запросов в сутки для этой модели!")
+            if user_profile.tariffs.name == "Free" and user_profile.ai_model_id == "gpt-4o":
+                return await message.answer("Для доступа к этой модели поменяйте тариф!")
+            if not check_limits_for_free_tariff(user_profile):
+                return await message.answer("Вы превысили лимит запросов в сутки для этой модели!")
 
-        try:
-            if current_model in text_models_openai:
-                await api_chat_session_async.active_generic_in_session(session_profile.id)
-                text_query = await api_text_query_async.create_text_query(message.text, session_profile.id)
-                text_messages = await api_chat_session_async.get_text_messages_from_session(session_profile.id,
-                                                                                            current_model)
-                response = await chat_gpt.async_generate_text(
-                    ai_model=current_model, context=text_messages, prompt=message.text
-                )
-                await api_text_query_async.save_message(response.choices[0].message.content, text_query.id)
-                await message.answer(f"{response.choices[0].message.content}")
-                if user_profile.ai_model_id == AiModelName.GPT_4_O_MINI.value and user_profile.chatgpt_4o_mini_daily_limit > 0:
-                    await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id,
-                                                                                   user_profile.ai_model_id)
-                if user_profile.ai_model_id == AiModelName.GPT_4_O.value and user_profile.chatgpt_4o_daily_limit > 0:
-                    await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id,
-                                                                                   user_profile.ai_model_id)
+            try:
+                if current_model in text_models_openai:
+                    await api_chat_session_async.active_generic_in_session(session_profile.id)
+                    text_query = await api_text_query_async.create_text_query(message.text, session_profile.id)
+                    text_messages = await api_chat_session_async.get_text_messages_from_session(session_profile.id,
+                                                                                                current_model)
+                    response = await chat_gpt.async_generate_text(
+                        ai_model=current_model, context=text_messages, prompt=message.text
+                    )
+                    await api_text_query_async.save_message(response.choices[0].message.content, text_query.id)
+                    await message.answer(f"{response.choices[0].message.content}")
+                    if user_profile.ai_model_id == AiModelName.GPT_4_O_MINI.value and user_profile.chatgpt_4o_mini_daily_limit > 0:
+                        await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id,
+                                                                                       user_profile.ai_model_id)
+                    if user_profile.ai_model_id == AiModelName.GPT_4_O.value and user_profile.chatgpt_4o_daily_limit > 0:
+                        await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id,
+                                                                                       user_profile.ai_model_id)
+                    await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
+                else:
+                    await generate_image_model(message, user_profile)
+            except BadRequestError as error:
                 await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
-            else:
-                await generate_image_model(message, user_profile)
-        except BadRequestError as error:
-            await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
-            await api_chat_session_async.delete_context_from_session(session_profile.id, user_profile)
-            if error.code == "context_length_exceeded":
-                # logger.error("BadRequestError error | MAX CONTEXT")
-                return {"status": "error", "code": "max_content", "result": "Превышен контекст"}
+                await api_chat_session_async.delete_context_from_session(session_profile.id, user_profile)
+                if error.code == "context_length_exceeded":
+                    # logger.error("BadRequestError error | MAX CONTEXT")
+                    return {"status": "error", "code": "max_content", "result": "Превышен контекст"}
 
-            # logger.error(f"BadRequestError error | {error}  {error.code}")
-            return {"status": "error", "code": error.code, "result": ""}
+                # logger.error(f"BadRequestError error | {error}  {error.code}")
+                return {"status": "error", "code": error.code, "result": ""}
+    else:
+        await message.answer("Эта команда работает только в группах.")

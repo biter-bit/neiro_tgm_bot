@@ -1,6 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from utils.enum import NameButtons, AiModelName
-from tgbot_app.db_api.models import Profile
+from db_api.models import Profile
 
 
 def change_name_button(model: AiModelName, profile: Profile) -> str:
@@ -21,3 +21,5 @@ async def gen_main_kb(user_profile, ai_models) -> ReplyKeyboardMarkup:
         [button_start],
     ], resize_keyboard=True, input_field_placeholder="Введите запрос для модели")
     return builder
+
+

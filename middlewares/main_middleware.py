@@ -2,7 +2,7 @@ from aiogram import BaseMiddleware
 from typing import Any, Awaitable, Callable, Dict
 from aiogram.enums import ChatMemberStatus
 from aiogram.types import Message, CallbackQuery, TelegramObject, InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot_app.db_api.models import Profile
+from db_api.models import Profile
 from db_api import api_profile_async, api_chat_session_async
 from utils.enum import AiModelName, TariffCode, NameButtons
 from config import settings

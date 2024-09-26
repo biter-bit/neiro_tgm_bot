@@ -5,7 +5,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import datetime
 from sqlalchemy import text, ForeignKey, BIGINT, String, Boolean
 from typing import Annotated, Optional
-from tgbot_app.utils.enum import TariffCode, AiModelName, PaymentName
+from utils.enum import TariffCode, AiModelName, PaymentName
 
 
 intpk = Annotated[int, mapped_column(primary_key=True)]

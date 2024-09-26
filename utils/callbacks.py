@@ -1,5 +1,5 @@
 from aiogram.filters.callback_data import CallbackData
-from utils.enum import MjOption, PaymentName
+from utils.enum import MjOption, PaymentName, AiModelName
 from uuid import UUID
 
 class MJCallback(CallbackData, prefix="mj"):
@@ -9,3 +9,6 @@ class MJCallback(CallbackData, prefix="mj"):
 
 class PaymentCallback(CallbackData, prefix="payment"):
     option: PaymentName
+
+class ModeCallback(CallbackData, prefix="mode"):
+    action: str

@@ -1,6 +1,6 @@
 from aiogram import Router, types
 from aiogram.filters import Command
-from tgbot_app.db_api.models import Profile
+from db_api.models import Profile
 from utils.enum import Messages
 
 info_profile_router = Router()
