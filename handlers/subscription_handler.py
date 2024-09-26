@@ -6,10 +6,10 @@ from aiogram.fsm.context import FSMContext
 from buttons.payment_kb import gen_pay_inline_kb, gen_confirm_pay_kb
 from utils.enum import Messages, PaymentName
 from utils.callbacks import PaymentCallback
-from tgbot_app.db_api import api_invoice_async, api_profile_async, api_tariff_async
-from tgbot_app.services import robokassa_obj
+from db_api import api_invoice_async, api_profile_async, api_tariff_async
+from services import robokassa_obj
 
-from tgbot_app.db_api.models import Profile, Invoice
+from db_api.models import Profile, Invoice
 
 pay_router = Router()
 
