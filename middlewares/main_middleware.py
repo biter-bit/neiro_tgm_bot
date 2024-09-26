@@ -1,6 +1,8 @@
 from aiogram import BaseMiddleware
 from typing import Any, Awaitable, Callable, Dict
 from aiogram.enums import ChatMemberStatus
+from aiogram.exceptions import TelegramBadRequest
+
 from aiogram.types import Message, CallbackQuery, TelegramObject, InlineKeyboardButton, InlineKeyboardMarkup
 from db_api.models import Profile
 from db_api import api_profile_async, api_chat_session_async
@@ -25,7 +27,10 @@ class MainMiddleware(BaseMiddleware):
         if user_profile.is_staff or user_profile.tariffs.code.value != TariffCode.FREE.value:
             return await handler(event, data)
 
-        status_1 = await event.bot.get_chat_member(chat_id=settings.CHANNELS_IDS[0], user_id=event.from_user.id)
+        try:
+            status_1 = await event.bot.get_chat_member(chat_id=settings.CHANNELS_IDS[0], user_id=event.from_user.id)
+        except TelegramBadRequest:
+            return await handler(event, data)
         # status_2 = await event.bot.get_chat_member(chat_id=settings.CHANNELS_IDS[1], user_id=event.from_user.id)
 
         if user_profile.count_request == 3 and status_1.status in (ChatMemberStatus.LEFT, ChatMemberStatus.KICKED):
