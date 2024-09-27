@@ -30,8 +30,6 @@ class Messages(Enum):
         /reset - сброс контекста
         /help - помощь
         /ask - задать вопрос (в группах)
-        
-        Подпишитесь на наш Telegram канал про технологии: https://t.me/chatgpt3
         """
     )
 

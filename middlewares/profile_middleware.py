@@ -22,8 +22,8 @@ class ProfileMiddleware(BaseMiddleware):
             last_name=user.last_name,
             url=user.url
         )
-        if isinstance(event, Message) and event.text in AiModelName.get_list_value():
-            session_profile = await api_chat_session_async.get_or_create_session(profile, event.text)
+        if isinstance(event, CallbackQuery) and hasattr(data["callback_data"], "action") and data["callback_data"].action in AiModelName.get_list_value():
+            session_profile = await api_chat_session_async.get_or_create_session(profile, data["callback_data"].action)
         else:
             session_profile = await api_chat_session_async.get_or_create_session(profile, profile.ai_model_id)
         data['user_profile'] = profile
