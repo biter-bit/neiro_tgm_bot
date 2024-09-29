@@ -10,6 +10,8 @@ from aiogram.fsm.context import FSMContext
 from states.type_generation import TypeState
 from buttons.choose_mode_ib import gen_choose_mode_kb
 from utils.callbacks import ModeCallback
+from aiogram.exceptions import TelegramBadRequest
+from services import logger
 
 choice_model_router = Router()
 
@@ -38,4 +40,7 @@ async def choice_ai_model_for_profile(query: types.CallbackQuery, callback_data:
         await state.set_state(TypeState.text)
     else:
         await state.set_state(TypeState.image)
-    await query.message.edit_reply_markup(reply_markup=markup)
+    try:
+        await query.message.edit_reply_markup(reply_markup=markup)
+    except TelegramBadRequest as e:
+        logger.info(e)

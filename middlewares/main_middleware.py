@@ -20,7 +20,11 @@ class MainMiddleware(BaseMiddleware):
         command = data.get("command")
         user_profile: Profile = data["user_profile"]
 
-        if isinstance(event, Message) and event.text:
+        if isinstance(event, CallbackQuery):
+            # if event.text in AiModelName.get_list_value() or event.text in NameButtons.get_list_value() or event.text.startswith('/'):
+            return await handler(event, data)
+
+        if isinstance(event, Message) and hasattr(event, 'text'):
             if event.text in AiModelName.get_list_value() or event.text in NameButtons.get_list_value() or event.text.startswith('/'):
                 return await handler(event, data)
 
