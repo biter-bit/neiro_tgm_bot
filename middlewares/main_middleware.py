@@ -29,25 +29,25 @@ class MainMiddleware(BaseMiddleware):
 
         try:
             status_1 = await event.bot.get_chat_member(chat_id=settings.CHANNELS_IDS[0], user_id=event.from_user.id)
+            status_2 = await event.bot.get_chat_member(chat_id=settings.CHANNELS_IDS[1], user_id=event.from_user.id)
         except TelegramBadRequest:
             return await handler(event, data)
-        # status_2 = await event.bot.get_chat_member(chat_id=settings.CHANNELS_IDS[1], user_id=event.from_user.id)
 
         if user_profile.count_request == 3 and status_1.status in (ChatMemberStatus.LEFT, ChatMemberStatus.KICKED):
             text = "Чтобы пользоваться самым лучшим ботом необходимо подписаться на наш канал!"
             markup = InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(text="Подписаться", url=f"https://t.me/{settings.CHANNELS_NAMES[0]}")]
+                    [InlineKeyboardButton(text="Подписаться", url=settings.CHANNELS_NAMES[0])]
                 ]
             )
 
-        # elif status_2.status in (ChatStatus.LEFT, ChatStatus.KICKED):
-        #     text = "Чтобы продолжить пользоваться самым лучшим ботом необходимо подписаться на наш второй канал!"
-        #     markup = InlineKeyboardMarkup(
-        #         inline_keyboard=[
-        #             [InlineKeyboardButton(text="Подписаться", url=f"https://t.me/{settings.CHANNELS_NAMES[1]}")]
-        #         ]
-        #     )
+        elif user_profile.count_request == 8 and status_2.status in (ChatMemberStatus.LEFT, ChatMemberStatus.KICKED):
+            text = "Чтобы продолжить пользоваться самым лучшим ботом необходимо подписаться на наш второй канал!"
+            markup = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text="Подписаться", url=settings.CHANNELS_NAMES[1])]
+                ]
+            )
         else:
             return await handler(event, data)
 

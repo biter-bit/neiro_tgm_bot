@@ -104,6 +104,17 @@ def check_balance_profile(profile: Profile) -> bool:
         return True
     return False
 
+def delete_image(file_path: str):
+    try:
+        # Проверяем, существует ли файл
+        if os.path.exists(file_path):
+            os.remove(file_path)  # Удаляем файл
+            print(f"Файл {file_path} успешно удалён.")
+        else:
+            print(f"Файл {file_path} не существует.")
+    except Exception as e:
+        print(f"Ошибка при удалении файла: {e}")
+
 def get_image_part(image_path, part_number, output_dir, name_file_photo):
     # Проверяем корректность номера части
     if part_number not in [1, 2, 3, 4]:

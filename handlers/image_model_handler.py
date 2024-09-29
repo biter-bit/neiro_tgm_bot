@@ -6,7 +6,7 @@ from db_api.models import Profile, ChatSession
 from utils.enum import AiModelName, MjOption
 from db_api import api_chat_session_async, api_profile_async, api_image_query_async
 from utils.features import (finish_generation_image, get_image_part, create_safe_filename, check_access_for_generic,
-                            make_request, create_photo)
+                            make_request, create_photo, delete_image)
 from services import nlp_translator, midjourney_obj
 from aiogram.fsm.context import FSMContext
 from states.type_generation import TypeState
@@ -163,6 +163,8 @@ async def generate_variation_image_model(query: CallbackQuery, user_profile: Pro
             await api_profile_async.subtracting_count_request_to_model_mj(user_profile.id)
         else:
             await query.message.answer("❌ Во время генерации произошла ошибка. Попробуйте написать запрос заново.")
+        delete_image(path_cut_photo)
+        delete_image(path_result)
     except Exception as e:
         logger.error(e)
     finally:
