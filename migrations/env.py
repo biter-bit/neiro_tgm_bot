@@ -19,7 +19,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", settings.url_connect_with_asyncpg + "?async_fallback=True")
+config.set_main_option("sqlalchemy.url", settings.url_connect_with_psycopg2)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
