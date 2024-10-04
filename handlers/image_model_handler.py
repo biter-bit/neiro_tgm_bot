@@ -160,7 +160,7 @@ async def generate_variation_image_model(query: CallbackQuery, user_profile: Pro
         if path_cut_photo:
             await query.message.answer_photo(photo=FSInputFile(path_cut_photo))
             await query.message.answer_document(document=FSInputFile(path_cut_photo))
-            await api_profile_async.subtracting_count_request_to_model_mj(user_profile.id)
+            # await api_profile_async.subtracting_count_request_to_model_mj(user_profile.id)
         else:
             await query.message.answer("❌ Во время генерации произошла ошибка. Попробуйте написать запрос заново.")
         delete_image(path_cut_photo)

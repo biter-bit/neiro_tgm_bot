@@ -19,3 +19,6 @@ class ChatGPT:
         except asyncio.TimeoutError:
             response = await self.async_client_chat_gpt.chat.completions.create(model=ai_model, messages=context)
             return response
+        except Exception:
+            response = await self.async_client_chat_gpt.chat.completions.create(model=ai_model, messages=context)
+            return response

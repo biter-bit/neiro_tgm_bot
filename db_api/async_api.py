@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from db_api.interface_api import DataBaseApiInterface
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from config import settings
@@ -221,11 +223,14 @@ class ApiProfileAsync(DBApiAsync):
             await session.commit()
             return "Ok"
 
-    async def subtracting_count_request_to_model_mj(self, profile_id: int) -> str:
+    async def subtracting_count_request_to_model_mj(self, profile_id: int, version: str) -> str:
         """Вычти кол-во допустимых запросов к модели chatgpt_4o_mini на 1 для пользователя."""
         async with self.async_session_db() as session:
             profile_id = await session.get(Profile, profile_id)
-            profile_id.mj_daily_limit -= 1
+            if version == '5.2':
+                profile_id.mj_daily_limit_5_2 -= 1
+            elif version == "6.0":
+                profile_id.mj_daily_limit_6_0 -= 1
             profile_id.count_request += 1
             await session.commit()
             return "Ok"
@@ -274,6 +279,54 @@ class ApiProfileAsync(DBApiAsync):
                 profile = result.unique().scalars().first()
             return profile
 
+    async def check_subscription(self):
+        """Проверь подписку пользователей"""
+        async with self.async_session_db() as session:
+            query = (
+                select(Profile)
+                .filter_by(tariff_id=2)
+                .options(joinedload(Profile.tariffs))
+                .options(joinedload(Profile.ai_models_id))
+            )
+            result = await session.execute(query)
+            profiles = result.scalars().all()
+
+            today = datetime.now().date()
+
+            for profile_obj in profiles:
+                if profile_obj.date_subscription == today:
+                    # Сбрасываем тариф на 1
+                    profile_obj.tariff_id = 1
+                    profile_obj.chatgpt_4o_mini_daily_limit = -1
+                    profile_obj.chatgpt_4o_daily_limit = 0
+                    profile_obj.mj_daily_limit_5_2 = 0
+                    profile_obj.mj_daily_limit_6_0 = 0
+
+            await session.commit()
+            return "Ok"
+
+    async def update_limits_profile(self):
+        """Обнови дневной баланс пользователей"""
+        async with self.async_session_db() as session:
+            query = (
+                select(Profile)
+                .filter_by(tariff_id=2)
+                .options(joinedload(Profile.tariffs))
+                .options(joinedload(Profile.ai_models_id))
+            )
+            result = await session.execute(query)
+            profiles = result.scalars().all()
+
+            for profile_obj in profiles:
+                profile_obj.chatgpt_4o_mini_daily_limit = -1
+                profile_obj.chatgpt_4o_daily_limit = 100
+                profile_obj.mj_daily_limit_5_2 = 45
+                profile_obj.mj_daily_limit_6_0 = 20
+
+            await session.commit()
+            return "Ok"
+
+
     async def update_subscription_profile(self, profile_id: int, tariff_id: int):
         """Сделай премиум доступ для пользователя"""
         async with self.async_session_db() as session:
@@ -287,8 +340,10 @@ class ApiProfileAsync(DBApiAsync):
             profile_obj = result.unique().scalars().first()
             profile_obj.tariff_id = tariff_id
             profile_obj.chatgpt_4o_mini_daily_limit = -1
-            profile_obj.chatgpt_4o_daily_limit = 50
-            profile_obj.mj_daily_limit = 35
+            profile_obj.chatgpt_4o_daily_limit = 100
+            profile_obj.mj_daily_limit_5_2 = 45
+            profile_obj.mj_daily_limit_6_0 = 20
+            profile_obj.date_subscription = datetime.now() + timedelta(days=30)
             await session.commit()
             await session.refresh(profile_obj)
             return profile_obj

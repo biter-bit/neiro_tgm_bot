@@ -25,5 +25,5 @@ class DBApiSync(DataBaseApiInterface):
     def create_tables(self):
         """Создай таблицы указанные в обьекте metadata"""
         # Base.metadata.drop_all(self.engine_db)
-        Base.metadata.create_all(self.engine_db)
+        # Base.metadata.create_all(self.engine_db)
         subprocess.run([f"{settings.PATH_WORK}/bash.sh"], capture_output=True, text=True)

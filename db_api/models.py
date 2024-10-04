@@ -69,7 +69,7 @@ class AiModel(Base):
     """Класс представляет из себя модель нейронных сетей"""
     __tablename__ = "ai_model"
 
-    code: Mapped[str | None] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(primary_key=True)
     name: Mapped[str | None]
     type: Mapped[str | None]
     is_active: Mapped[bool | None]
@@ -120,10 +120,11 @@ class Profile(Base):
                                                   nullable=True, default=None)
     ai_model_id: Mapped[int | None] = mapped_column(ForeignKey("ai_model.code", ondelete='SET NULL'),
                                                  nullable=True, default="gpt-4o-mini")
-    update_daily_limits_time: Mapped[created]
+    date_subscription: Mapped[datetime.datetime] = mapped_column(nullable=True)
     chatgpt_4o_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
-    chatgpt_4o_mini_daily_limit: Mapped[Optional[int]] = mapped_column(default=30)
-    mj_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
+    chatgpt_4o_mini_daily_limit: Mapped[Optional[int]] = mapped_column(default=-1)
+    mj_daily_limit_5_2: Mapped[Optional[int]] = mapped_column(default=0)
+    mj_daily_limit_6_0: Mapped[Optional[int]] = mapped_column(default=0)
     count_request: Mapped[int | None] = mapped_column(default=0)
     # midjourney_6_0_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
     # midjourney_5_2_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)

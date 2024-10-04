@@ -78,8 +78,8 @@ ALTER TABLE ONLY public.tariff ALTER COLUMN id SET DEFAULT nextval('public.tarif
 --
 
 COPY public.tariff (id, name, code, description, chatgpt_4o_daily_limit, chatgpt_4o_mini_daily_limit, midjourney_6_0_daily_limit, midjourney_5_2_daily_limit, days, price_rub, price_stars, is_active, created_at, updated_at) FROM stdin;
-1	Free	FREE	Бесплатный тариф	0	30	0	0	\N	\N	\N	t	2024-09-15 14:16:29.932943	2024-09-15 14:16:29.932943
-2	Premium	PREMIUM	Премиум тариф	50	-1	10	25	30	499	300	t	2024-09-15 14:19:09.158407	2024-09-15 14:19:09.158407
+1	Free	FREE	Бесплатный тариф	0	-1	0	0	\N	\N	\N	t	2024-09-15 14:16:29.932943	2024-09-15 14:16:29.932943
+2	Premium	PREMIUM	Премиум тариф	100	-1	20	45	30	489	190	t	2024-09-15 14:19:09.158407	2024-09-15 14:19:09.158407
 \.
 
 

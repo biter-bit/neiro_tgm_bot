@@ -11,7 +11,7 @@ async def gen_pay_inline_kb() -> InlineKeyboardMarkup:
         callback_data=PaymentCallback(option=PaymentName.STARS).pack()
     )
     button_pay_robokassa = InlineKeyboardButton(
-        text="Оплата Robokassa 💵",
+        text="Оплата Картой 💳",
         callback_data=PaymentCallback(option=PaymentName.ROBOKASSA).pack()
     )
     builder = InlineKeyboardMarkup(inline_keyboard=[

@@ -7,7 +7,7 @@ from utils.callbacks import ModeCallback
 
 def change_name_button(model: str, profile: Profile) -> str:
     """Верни имя кнопки в нужном формате"""
-    return f'✅ {model}' if profile.ai_model_id == model else model
+    return f'✅ {AiModelName.get_need_format(model)}' if profile.ai_model_id == model else AiModelName.get_need_format(model)
 
 
 async def gen_choose_mode_kb(ai_models, profile) -> InlineKeyboardMarkup:
@@ -15,10 +15,10 @@ async def gen_choose_mode_kb(ai_models, profile) -> InlineKeyboardMarkup:
 
     builder = InlineKeyboardBuilder()
 
-    for action in ai_models:
+    for model in ai_models:
         builder.button(
-            text=change_name_button(action, profile),
-            callback_data=ModeCallback(action=change_name_button(model=action, profile=profile)),
+            text=change_name_button(model, profile),
+            callback_data=ModeCallback(action=model),
         )
 
     builder.adjust(2, 2)
