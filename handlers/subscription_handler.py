@@ -7,7 +7,8 @@ from buttons.payment_kb import gen_pay_inline_kb, gen_confirm_pay_kb
 from utils.enum import Messages, PaymentName
 from utils.callbacks import PaymentCallback
 from db_api import api_invoice_async, api_profile_async, api_tariff_async
-from services import robokassa_obj
+from services import robokassa_obj, redis
+import json
 
 from db_api.models import Profile, Invoice
 
@@ -58,15 +59,16 @@ async def payment_robokassa_handler(callback: types.CallbackQuery, user_profile:
 async def pre_checkout_handler(query: PreCheckoutQuery):
     inv_id = int(query.invoice_payload)
     invoice = await api_invoice_async.pay_invoice(inv_id)
-    await api_profile_async.update_subscription_profile(invoice.profiles.id, invoice.tariffs.id)
+    profile = await api_profile_async.update_subscription_profile(invoice.profiles.id, invoice.tariffs.id)
+    await redis.set(profile.tgid, json.dumps(profile.to_dict()))
     await query.answer(ok=True)
 
 @pay_router.message(F.content_type == ContentType.SUCCESSFUL_PAYMENT)
 async def success_payment_handler(message: Message, user_profile: Profile, state: FSMContext):
-    await message.bot.refund_star_payment(message.from_user.id, message.successful_payment.telegram_payment_charge_id)
-    await profile_info(message=message, user_profile=user_profile, state=state)
+    # await message.bot.refund_star_payment(message.from_user.id, message.successful_payment.telegram_payment_charge_id)
+    await profile_info(message=message)
 
-async def profile_info(message: Message, user_profile: Profile, state: FSMContext):
+async def profile_info(message: Message):
     await message.answer(text="Success")
 
 # @pay_router.message(Command(MainCommands.TARIFFS.command))

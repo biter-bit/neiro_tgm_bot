@@ -44,7 +44,7 @@ class Robokassa:
             "SignatureValue": self.calc_signature(self.login, price, inv_id, receipt, self.password_1),
             "Recurring": "false",
             "Receipt": receipt,
-            "IsTest": 1
+            "IsTest": 1 # убрать в проде
         }
 
         if mother_inv_id:

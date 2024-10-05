@@ -8,15 +8,16 @@ from aiogram import Router
 from aiogram.types import Message
 
 from db_api.models import ChatSession
-from db_api.models import Profile
+from db_api.models import Profile, Tariff
 from utils.enum import AiModelName
 from db_api import api_chat_session_async, api_text_query_async, api_profile_async
-from services import chat_gpt
+from services import chat_gpt, redis
 from openai import BadRequestError
 from .image_model_handler import generate_image_model
 from utils.features import check_limits_for_free_tariff, check_balance_profile
 from aiogram.fsm.context import FSMContext
 from states.type_generation import TypeState
+import json
 
 ask_router = Router()
 
@@ -29,13 +30,21 @@ async def generate_text_in_group(message: types.Message):
     """Обработай генерацию в группе"""
     if message.chat.type != enums.ChatType.PRIVATE:
         user = message.from_user
-        user_profile = await api_profile_async.get_or_create_profile(
-            tgid=user.id,
-            username=user.username,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            url=user.url
-        )
+        cache_value = await redis.get(user.id)
+        if cache_value:
+            profile_data = json.loads(cache_value)
+            tariff = Tariff(**profile_data['tariffs'])
+            profile_data['tariffs'] = tariff
+            user_profile = Profile(**profile_data)
+        else:
+            user_profile = await api_profile_async.get_or_create_profile(
+                tgid=user.id,
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                url=user.url
+            )
+            await redis.set(user.id, json.dumps(user_profile.to_dict()))
         session_profile = await api_chat_session_async.get_or_create_session(user_profile, user_profile.ai_model_id)
         new_text = message.text.removeprefix('/ask').strip()
 
@@ -62,12 +71,11 @@ async def generate_text_in_group(message: types.Message):
                     )
                     await api_text_query_async.save_message(response.choices[0].message.content, text_query.id)
                     await message.answer(f"{response.choices[0].message.content}")
-                    if user_profile.ai_model_id == AiModelName.GPT_4_O_MINI.value and user_profile.chatgpt_4o_mini_daily_limit > 0:
-                        await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id,
-                                                                                       user_profile.ai_model_id)
+
                     if user_profile.ai_model_id == AiModelName.GPT_4_O.value and user_profile.chatgpt_4o_daily_limit > 0:
-                        await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id,
+                        profile = await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id,
                                                                                        user_profile.ai_model_id)
+                        await redis.set(user_profile.tgid, json.dumps(profile.to_dict()))
                     await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
                 else:
                     await generate_image_model(message, user_profile)

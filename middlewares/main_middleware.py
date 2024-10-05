@@ -28,7 +28,7 @@ class MainMiddleware(BaseMiddleware):
             if event.text in AiModelName.get_list_value() or event.text in NameButtons.get_list_value() or event.text.startswith('/'):
                 return await handler(event, data)
 
-        if user_profile.is_staff or user_profile.tariffs.code.value != TariffCode.FREE.value:
+        if user_profile.is_staff or user_profile.tariffs.name != TariffCode.FREE.value:
             return await handler(event, data)
 
         try:

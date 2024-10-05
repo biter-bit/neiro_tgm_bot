@@ -47,14 +47,16 @@ async def make_request(url):
             "result": "Ошибка декодирования JSON"
         }
 
-async def finish_generation_image(url_photo: str, image_id: UUID, profile: Profile) -> str:
+
+
+async def finish_generation_image(url_photo: str, image_id: UUID, profile: Profile) -> Profile:
     """Сделай все основные действий после генерации"""
     await api_image_query_async.save_answer_query(url_photo, image_id)
     if profile.ai_model_id == AiModelName.MIDJOURNEY_5_2.value() and profile.mj_daily_limit_5_2 > 0:
-        await api_profile_async.subtracting_count_request_to_model_mj(profile.id, "5.2")
+        profile = await api_profile_async.subtracting_count_request_to_model_mj(profile.id, "5.2")
     elif profile.ai_models_id == AiModelName.MIDJOURNEY_6_0.value() and profile.mj_daily_limit_6_0 > 0:
-        await api_profile_async.subtracting_count_request_to_model_mj(profile.id, "6.0")
-    return "Ok"
+        profile = await api_profile_async.subtracting_count_request_to_model_mj(profile.id, "6.0")
+    return profile
 
 def check_status_generic(session_profile: ChatSession) -> dict:
     """Проверь статус генерации у пользователя."""

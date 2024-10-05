@@ -223,19 +223,20 @@ class ApiProfileAsync(DBApiAsync):
             await session.commit()
             return "Ok"
 
-    async def subtracting_count_request_to_model_mj(self, profile_id: int, version: str) -> str:
+    async def subtracting_count_request_to_model_mj(self, profile_id: int, version: str) -> Profile:
         """Вычти кол-во допустимых запросов к модели chatgpt_4o_mini на 1 для пользователя."""
         async with self.async_session_db() as session:
-            profile_id = await session.get(Profile, profile_id)
+            profile = await session.get(Profile, profile_id)
             if version == '5.2':
-                profile_id.mj_daily_limit_5_2 -= 1
+                profile.mj_daily_limit_5_2 -= 1
             elif version == "6.0":
-                profile_id.mj_daily_limit_6_0 -= 1
-            profile_id.count_request += 1
+                profile.mj_daily_limit_6_0 -= 1
+            profile.count_request += 1
             await session.commit()
-            return "Ok"
+            await session.refresh(profile)
+            return profile
 
-    async def subtracting_count_request_to_model_gpt(self, profile_id: int, model_id: str) -> str:
+    async def subtracting_count_request_to_model_gpt(self, profile_id: int, model_id: str) -> Profile:
         """Вычти кол-во допустимых запросов к модели chatgpt_4o_mini на 1 для пользователя."""
         async with self.async_session_db() as session:
             profile = await session.get(Profile, profile_id)
@@ -245,7 +246,8 @@ class ApiProfileAsync(DBApiAsync):
                 profile.chatgpt_4o_mini_daily_limit -= 1
             profile.count_request += 1
             await session.commit()
-            return "Ok"
+            await session.refresh(profile)
+            return profile
 
     async def get_or_create_profile(self, tgid: int, username: str, first_name: str, last_name: str, url: str):
         """Создай пользователя если его нет в бд"""

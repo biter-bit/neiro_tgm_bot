@@ -6,11 +6,16 @@ from .payment import Robokassa
 from aiogram import Bot, Dispatcher
 from .logger_service import create_logger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from aiogram.fsm.storage.memory import MemoryStorage
+import aioredis
 
 logger = create_logger(settings.LEVEL_LOGGER)
+
 bot = Bot(token=settings.TOKEN_TELEGRAM_BOT)
 scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-dp = Dispatcher(bot=bot) # создаем обьект диспетчера для работы с callback и сообщениями бота telegram
+storage = MemoryStorage()
+dp = Dispatcher(bot=bot, storage=storage) # создаем обьект диспетчера для работы с callback и сообщениями бота telegram
+redis = aioredis.from_url(f"redis://{settings.REDIS_HOST}", decode_responses=True)
 chat_gpt = ChatGPT(
     token=settings.OPENAI_API_KEY,
     base_url=settings.OPENAI_BASE_URL,

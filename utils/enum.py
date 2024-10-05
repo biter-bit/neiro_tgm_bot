@@ -179,12 +179,12 @@ class Messages(Enum):
         if profile.tariffs.name == 'Free':
             return cls._PROFILE_FREE.value.format(
                 tgid=profile.tgid,
-                code_tariff=profile.tariffs.code.value,
+                code_tariff=profile.tariffs.name,
             )
         else:
             return cls._PROFILE_NOT_FREE.value.format(
                 tgid=profile.tgid,
-                code_tariff=profile.tariffs.code.value,
+                code_tariff=profile.tariffs.name,
                 available_chatgpt_4o=profile.chatgpt_4o_daily_limit,
                 limit_chatgpt_4o=profile.tariffs.chatgpt_4o_daily_limit,
                 available_mj_5_2=profile.mj_daily_limit_5_2,
@@ -258,5 +258,5 @@ class AiModelName(Enum):
 
 class TariffCode(Enum):
     """Класс с названиями тариффов"""
-    FREE = "free"
+    FREE = "Free"
     PREMIUM = "premium"

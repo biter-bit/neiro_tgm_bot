@@ -2,10 +2,12 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from db_api.models import Profile
 from utils.enum import Messages
+from services import logger
 
 info_profile_router = Router()
 
 @info_profile_router.message(Command("profile"))
 async def get_info_profile(message: types.Message, user_profile: Profile):
+    logger.info(f"Юзер равен - {vars(user_profile)}")
     message_for_user = Messages.create_message_profile(user_profile)
     await message.answer(message_for_user)

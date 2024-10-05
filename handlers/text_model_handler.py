@@ -5,12 +5,13 @@ from db_api.models import ChatSession
 from db_api.models import Profile
 from utils.enum import AiModelName
 from db_api import api_chat_session_async, api_text_query_async, api_profile_async
-from services import chat_gpt
+from services import chat_gpt, redis
 from openai import BadRequestError
 from .image_model_handler import generate_image_model
 from utils.features import check_limits_for_free_tariff, check_balance_profile
 from aiogram.fsm.context import FSMContext
 from states.type_generation import TypeState
+import json
 
 text_router = Router()
 
@@ -43,10 +44,10 @@ async def generate_text_model(message: Message, user_profile: Profile, session_p
                 )
                 await api_text_query_async.save_message(response.choices[0].message.content, text_query.id)
                 await message.answer(f"{response.choices[0].message.content}")
-                # if user_profile.ai_model_id == AiModelName.GPT_4_O_MINI.value and user_profile.chatgpt_4o_mini_daily_limit > 0:
-                #     await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id, user_profile.ai_model_id)
+
                 if user_profile.ai_model_id == AiModelName.GPT_4_O.value and user_profile.chatgpt_4o_daily_limit > 0:
-                    await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id, user_profile.ai_model_id)
+                    profile = await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id, user_profile.ai_model_id)
+                    await redis.set(user_profile.tgid, json.dumps(profile.to_dict()))
                 await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
             else:
                 await generate_image_model(message, user_profile)

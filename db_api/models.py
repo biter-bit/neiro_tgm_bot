@@ -105,6 +105,26 @@ class Tariff(Base):
 
     profiles: Mapped["Profile"] = relationship(back_populates="tariffs")
 
+    def to_dict(self):
+        """Преобразует объект Tariff в словарь."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "code": str(self.code),
+            "description": self.description,
+            "chatgpt_4o_daily_limit": self.chatgpt_4o_daily_limit,
+            "chatgpt_4o_mini_daily_limit": self.chatgpt_4o_mini_daily_limit,
+            "midjourney_6_0_daily_limit": self.midjourney_6_0_daily_limit,
+            "midjourney_5_2_daily_limit": self.midjourney_5_2_daily_limit,
+            "days": self.days,
+            "price_rub": self.price_rub,
+            "price_stars": self.price_stars,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,  # Преобразуем дату
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,  # Преобразуем дату
+        }
+
+
 class Profile(Base):
     """Класс представляет собой профиль пользователя бота"""
     __tablename__ = "profile"
@@ -138,6 +158,30 @@ class Profile(Base):
     tariffs: Mapped["Tariff"] = relationship(back_populates="profiles")
     ai_models_id: Mapped["AiModel"] = relationship()
 
+    def to_dict(self):
+        """Преобразует объект Profile в словарь."""
+        return {
+            "id": str(self.id),
+            "tgid": self.tgid,
+            "username": self.username,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "email": self.email,
+            "url_telegram": self.url_telegram,
+            "tariff_id": self.tariff_id,
+            "ai_model_id": self.ai_model_id,
+            "date_subscription": self.date_subscription.isoformat() if self.date_subscription else None,
+            "chatgpt_4o_daily_limit": self.chatgpt_4o_daily_limit,
+            "chatgpt_4o_mini_daily_limit": self.chatgpt_4o_mini_daily_limit,
+            "mj_daily_limit_5_2": self.mj_daily_limit_5_2,
+            "mj_daily_limit_6_0": self.mj_daily_limit_6_0,
+            "count_request": self.count_request,
+            "is_staff": self.is_staff,
+            "is_admin": self.is_admin,
+            "created_at": self.created_at.isoformat() if self.created_at else None,  # Преобразуем дату
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,  # Преобразуем дату
+            "tariffs": self.tariffs.to_dict() if self.tariffs else None,
+        }
 
 # class AiModelOptionM2M(Base):
 #     """Класс представляет себя связующую таблицу опций модели и саму модель"""
