@@ -77,6 +77,17 @@ class AiModel(Base):
     created_at: Mapped[created]
     updated_at: Mapped[updated]
 
+    def to_dict(self):
+        """Преобразует объект AiModel в словарь."""
+        return {
+            "code": self.code,
+            "name": self.name,
+            "type": str(self.type),
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,  # Преобразуем дату
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,  # Преобразуем дату
+        }
+
     # option: Mapped[list["AiOption"]] = relationship(
     #     back_populates="option",
     #     secondary="ai_model_option"
@@ -181,6 +192,7 @@ class Profile(Base):
             "created_at": self.created_at.isoformat() if self.created_at else None,  # Преобразуем дату
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,  # Преобразуем дату
             "tariffs": self.tariffs.to_dict() if self.tariffs else None,
+            "ai_models_id": self.ai_models_id.to_dict() if self.ai_models_id else None,
         }
 
 # class AiModelOptionM2M(Base):

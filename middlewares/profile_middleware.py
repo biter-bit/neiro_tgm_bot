@@ -5,7 +5,7 @@ from db_api import api_profile_async, api_chat_session_async
 from utils.enum import AiModelName
 from services import redis
 import json
-from db_api.models import Profile, Tariff
+from db_api.models import Profile, Tariff, AiModel
 
 
 class ProfileMiddleware(BaseMiddleware):
@@ -22,7 +22,9 @@ class ProfileMiddleware(BaseMiddleware):
         if cache_value:
             profile_data = json.loads(cache_value)
             tariff = Tariff(**profile_data['tariffs'])
+            ai_models_id = AiModel(**profile_data['ai_models_id'])
             profile_data['tariffs'] = tariff
+            profile_data['ai_models_id'] = ai_models_id
             profile = Profile(**profile_data)
         else:
             profile = await api_profile_async.get_or_create_profile(

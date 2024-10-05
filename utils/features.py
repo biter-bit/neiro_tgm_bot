@@ -47,8 +47,6 @@ async def make_request(url):
             "result": "Ошибка декодирования JSON"
         }
 
-
-
 async def finish_generation_image(url_photo: str, image_id: UUID, profile: Profile) -> Profile:
     """Сделай все основные действий после генерации"""
     await api_image_query_async.save_answer_query(url_photo, image_id)
