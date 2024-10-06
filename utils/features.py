@@ -94,6 +94,10 @@ def check_limits_for_free_tariff(profile: Profile):
         return True
     elif profile.ai_models_id.code == "gpt-4o" and profile.chatgpt_4o_daily_limit != 0:
         return True
+    elif profile.ai_models_id.code == "o1-preview" and profile.chatgpt_o1_preview_daily_limit != 0:
+        return True
+    elif profile.ai_models_id.code == "o1-mini" and profile.chatgpt_o1_mini_daily_limit != 0:
+        return True
     return False
 
 def check_balance_profile(profile: Profile) -> bool:

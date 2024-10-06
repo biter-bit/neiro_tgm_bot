@@ -21,6 +21,6 @@ async def gen_choose_mode_kb(ai_models, profile) -> InlineKeyboardMarkup:
             callback_data=ModeCallback(action=model),
         )
 
-    builder.adjust(2, 2)
+    builder.adjust(2, 2, 2)
 
     return builder.as_markup()

@@ -154,6 +154,8 @@ class Profile(Base):
     date_subscription: Mapped[datetime.datetime] = mapped_column(nullable=True)
     chatgpt_4o_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
     chatgpt_4o_mini_daily_limit: Mapped[Optional[int]] = mapped_column(default=-1)
+    chatgpt_o1_preview_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
+    chatgpt_o1_mini_daily_limit: Mapped[Optional[int]] = mapped_column(default=0)
     mj_daily_limit_5_2: Mapped[Optional[int]] = mapped_column(default=0)
     mj_daily_limit_6_0: Mapped[Optional[int]] = mapped_column(default=0)
     count_request: Mapped[int | None] = mapped_column(default=0)

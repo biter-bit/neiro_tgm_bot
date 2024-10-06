@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a0d65b999549
+Revision ID: 9d8e438c9a17
 Revises: 
-Create Date: 2024-10-04 12:31:08.013287
+Create Date: 2024-10-06 18:52:26.632992
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'a0d65b999549'
+revision: str = '9d8e438c9a17'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -57,9 +57,11 @@ def upgrade() -> None:
     sa.Column('url_telegram', sa.String(), nullable=True),
     sa.Column('tariff_id', sa.Integer(), nullable=True),
     sa.Column('ai_model_id', sa.String(), nullable=True),
-    sa.Column('update_daily_limits_time', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
+    sa.Column('date_subscription', sa.DateTime(), nullable=True),
     sa.Column('chatgpt_4o_daily_limit', sa.Integer(), nullable=True),
     sa.Column('chatgpt_4o_mini_daily_limit', sa.Integer(), nullable=True),
+    sa.Column('chatgpt_o1_preview_daily_limit', sa.Integer(), nullable=True),
+    sa.Column('chatgpt_o1_mini_daily_limit', sa.Integer(), nullable=True),
     sa.Column('mj_daily_limit_5_2', sa.Integer(), nullable=True),
     sa.Column('mj_daily_limit_6_0', sa.Integer(), nullable=True),
     sa.Column('count_request', sa.Integer(), nullable=True),

@@ -16,7 +16,8 @@ import json
 text_router = Router()
 
 text_models_openai = [
-    AiModelName.GPT_4_O_MINI.value, AiModelName.GPT_4_O.value
+    AiModelName.GPT_4_O_MINI.value, AiModelName.GPT_4_O.value, AiModelName.GPT_O1_MINI.value,
+    AiModelName.GPT_O1_PREVIEW.value
 ]
 
 @text_router.message(TypeState.text)
@@ -29,7 +30,7 @@ async def generate_text_model(message: Message, user_profile: Profile, session_p
 
         current_model = user_profile.ai_model_id
 
-        if user_profile.tariffs.name == "Free" and user_profile.ai_model_id == "gpt-4o":
+        if user_profile.tariffs.name == "Free" and user_profile.ai_model_id in ("gpt-4o", "o1-mini", "o1-preview"):
             return await message.answer("Для доступа к этой модели поменяйте тариф!")
         if not check_limits_for_free_tariff(user_profile):
             return await message.answer("Вы превысили лимит запросов в сутки для этой модели!")

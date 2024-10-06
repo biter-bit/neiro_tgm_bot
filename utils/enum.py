@@ -227,6 +227,8 @@ class AiModelName(Enum):
     GPT_4_O_MINI = "gpt-4o-mini"
     MIDJOURNEY_6_0 = "mj-6-0"
     MIDJOURNEY_5_2 = "mj-5-2"
+    GPT_O1_PREVIEW = "o1-preview"
+    GPT_O1_MINI = "o1-mini"
 
     @classmethod
     def get_list_value(cls):
@@ -246,6 +248,10 @@ class AiModelName(Enum):
             result = 'Midjourney 6.0'
         elif model == cls.MIDJOURNEY_6_0.value:
             result = 'Midjourney 5.2'
+        elif model == cls.GPT_O1_PREVIEW.value:
+            result = 'o1-preview'
+        elif model == cls.GPT_O1_MINI.value:
+            result = 'o1-mini'
         return result
 
     @classmethod

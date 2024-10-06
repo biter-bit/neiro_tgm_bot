@@ -244,6 +244,10 @@ class ApiProfileAsync(DBApiAsync):
                 profile.chatgpt_4o_daily_limit -= 1
             elif model_id == AiModelName.GPT_4_O_MINI.value:
                 profile.chatgpt_4o_mini_daily_limit -= 1
+            elif model_id == AiModelName.GPT_O1_PREVIEW.value:
+                profile.chatgpt_o1_preview_daily_limit -= 1
+            elif model_id == AiModelName.GPT_O1_MINI.value:
+                profile.chatgpt_o1_mini_daily_limit -= 1
             profile.count_request += 1
             await session.commit()
             await session.refresh(profile)
@@ -303,6 +307,8 @@ class ApiProfileAsync(DBApiAsync):
                     profile_obj.chatgpt_4o_daily_limit = 0
                     profile_obj.mj_daily_limit_5_2 = 0
                     profile_obj.mj_daily_limit_6_0 = 0
+                    profile_obj.chatgpt_o1_preview_daily_limit = 0
+                    profile_obj.chatgpt_o1_mini_daily_limit = 0
 
             await session.commit()
             return "Ok"
@@ -324,6 +330,8 @@ class ApiProfileAsync(DBApiAsync):
                 profile_obj.chatgpt_4o_daily_limit = 100
                 profile_obj.mj_daily_limit_5_2 = 45
                 profile_obj.mj_daily_limit_6_0 = 20
+                profile_obj.chatgpt_o1_preview_daily_limit = 20
+                profile_obj.chatgpt_o1_mini_daily_limit = 60
 
             await session.commit()
             return "Ok"
@@ -345,6 +353,8 @@ class ApiProfileAsync(DBApiAsync):
             profile_obj.chatgpt_4o_daily_limit = 100
             profile_obj.mj_daily_limit_5_2 = 45
             profile_obj.mj_daily_limit_6_0 = 20
+            profile_obj.chatgpt_o1_preview_daily_limit = 20
+            profile_obj.chatgpt_o1_mini_daily_limit = 60
             profile_obj.date_subscription = datetime.now() + timedelta(days=30)
             await session.commit()
             await session.refresh(profile_obj)
