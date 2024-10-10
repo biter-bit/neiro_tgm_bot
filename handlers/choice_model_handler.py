@@ -13,6 +13,7 @@ from utils.callbacks import ModeCallback
 from aiogram.exceptions import TelegramBadRequest
 from services import logger, redis
 import json
+from utils.cache import set_cache_profile, serialization_profile
 
 choice_model_router = Router()
 
@@ -32,8 +33,7 @@ async def choice_ai_model_for_profile(query: types.CallbackQuery, callback_data:
 
     model_without_check_mark = callback_data.action.replace('✅ ', '')
     profile_obj = await api_profile_async.replace_model_of_profile(user_profile, model_without_check_mark)
-    profile_data = profile_obj.to_dict()
-    await redis.set(profile_data['tgid'], json.dumps(profile_data))
+    await set_cache_profile(profile_obj.tgid, await serialization_profile(profile_obj))
 
     ai_models = await api_ai_model_async.get_all_ai_models()
     markup = await gen_choose_mode_kb(ai_models, profile_obj)

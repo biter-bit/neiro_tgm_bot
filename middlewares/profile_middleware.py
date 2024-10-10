@@ -2,11 +2,10 @@ from aiogram import BaseMiddleware
 from typing import Any, Awaitable, Callable, Dict
 from aiogram.types import Message, CallbackQuery
 from db_api import api_profile_async, api_chat_session_async
+from services import logger
 from utils.enum import AiModelName
-from services import redis
-import json
-from db_api.models import Profile, Tariff, AiModel
-
+import sqlalchemy
+from utils.cache import get_cache_profile, set_cache_profile, serialization_profile, deserialization_profile
 
 class ProfileMiddleware(BaseMiddleware):
     """Представляет из себя класс по работе с пользователем, который выполняется до и после обработчика"""
@@ -18,14 +17,9 @@ class ProfileMiddleware(BaseMiddleware):
     ) -> Any:
         """Создай пользователя, если его нет в базе данных"""
         user = event.from_user
-        cache_value = await redis.get(user.id)
+        cache_value = await get_cache_profile(user.id)
         if cache_value:
-            profile_data = json.loads(cache_value)
-            tariff = Tariff(**profile_data['tariffs'])
-            ai_models_id = AiModel(**profile_data['ai_models_id'])
-            profile_data['tariffs'] = tariff
-            profile_data['ai_models_id'] = ai_models_id
-            profile = Profile(**profile_data)
+            profile = await deserialization_profile(cache_value)
         else:
             profile = await api_profile_async.get_or_create_profile(
                 tgid=user.id,
@@ -34,11 +28,27 @@ class ProfileMiddleware(BaseMiddleware):
                 last_name=user.last_name,
                 url=user.url
             )
-            await redis.set(user.id, json.dumps(profile.to_dict()))
+            await set_cache_profile(user.id, await serialization_profile(profile))
+
         if isinstance(event, CallbackQuery) and hasattr(data["callback_data"], "action") and data["callback_data"].action in AiModelName.get_list_value():
-            session_profile = await api_chat_session_async.get_or_create_session(profile, data["callback_data"].action)
+            ai_model_id = data["callback_data"].action
         else:
-            session_profile = await api_chat_session_async.get_or_create_session(profile, profile.ai_model_id)
+            ai_model_id = profile.ai_model_id
+
+        try:
+            session_profile = await api_chat_session_async.get_or_create_session(profile, ai_model_id)
+        except sqlalchemy.exc.IntegrityError as e:
+            logger.info(f"Профиль {profile.tgid} не найден. Поэтому был создан новый.")
+            profile = await api_profile_async.get_or_create_profile(
+                tgid=user.id,
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                url=user.url
+            )
+            await set_cache_profile(user.id, await serialization_profile(profile))
+            session_profile = await api_chat_session_async.get_or_create_session(profile, ai_model_id)
+
         data['user_profile'] = profile
         data['session_profile'] = session_profile
 

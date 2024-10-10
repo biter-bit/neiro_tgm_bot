@@ -15,9 +15,10 @@ from services import chat_gpt, redis
 from openai import BadRequestError
 from .image_model_handler import generate_image_model
 from utils.features import check_limits_for_free_tariff, check_balance_profile
-from aiogram.fsm.context import FSMContext
-from states.type_generation import TypeState
+from services import logger
+import sqlalchemy
 import json
+from utils.cache import set_cache_profile, serialization_profile, deserialization_profile, get_cache_profile
 
 ask_router = Router()
 
@@ -30,14 +31,10 @@ async def generate_text_in_group(message: types.Message):
     """Обработай генерацию в группе"""
     if message.chat.type != enums.ChatType.PRIVATE:
         user = message.from_user
-        cache_value = await redis.get(user.id)
+        cache_value = await get_cache_profile(user.id)
+
         if cache_value:
-            profile_data = json.loads(cache_value)
-            tariff = Tariff(**profile_data['tariffs'])
-            ai_models_id = AiModel(**profile_data['ai_models_id'])
-            profile_data['tariffs'] = tariff
-            profile_data['ai_models_id'] = ai_models_id
-            user_profile = Profile(**profile_data)
+            user_profile = await deserialization_profile(cache_value)
         else:
             user_profile = await api_profile_async.get_or_create_profile(
                 tgid=user.id,
@@ -46,8 +43,22 @@ async def generate_text_in_group(message: types.Message):
                 last_name=user.last_name,
                 url=user.url
             )
-            await redis.set(user.id, json.dumps(user_profile.to_dict()))
-        session_profile = await api_chat_session_async.get_or_create_session(user_profile, user_profile.ai_model_id)
+            await set_cache_profile(user.id, await serialization_profile(user_profile))
+
+        try:
+            session_profile = await api_chat_session_async.get_or_create_session(user_profile, user_profile.ai_model_id)
+        except sqlalchemy.exc.IntegrityError as e:
+            user_profile = await api_profile_async.get_or_create_profile(
+                tgid=user.id,
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                url=user.url
+            )
+            await set_cache_profile(user.id, await serialization_profile(user_profile))
+            session_profile = await api_chat_session_async.get_or_create_session(user_profile, user_profile.ai_model_id)
+            logger.info(f"Профиль {user_profile.id} не найден. Поэтому был создан новый.")
+
         new_text = message.text.removeprefix('/ask').strip()
 
         if user_profile.ai_model_id in text_models_openai:
@@ -77,7 +88,7 @@ async def generate_text_in_group(message: types.Message):
                     if user_profile.ai_model_id == AiModelName.GPT_4_O.value and user_profile.chatgpt_4o_daily_limit > 0:
                         profile = await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id,
                                                                                        user_profile.ai_model_id)
-                        await redis.set(user_profile.tgid, json.dumps(profile.to_dict()))
+                        await set_cache_profile(user_profile.tgid, json.dumps(profile.to_dict()))
                     await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
                 else:
                     await generate_image_model(message, user_profile)
