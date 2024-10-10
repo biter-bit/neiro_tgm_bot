@@ -18,11 +18,11 @@ class ChatGPT:
                 timeout=10
             )
             return response
-        except asyncio.TimeoutError:
-            response = await self.async_client_chat_gpt.chat.completions.create(model=ai_model, messages=context)
-            return response
         except Exception:
-            response = await self.async_client_chat_gpt.chat.completions.create(model=ai_model, messages=context)
+            response = await asyncio.wait_for(
+                self.async_client_chat_gpt.chat.completions.create(model=ai_model, messages=context),
+                timeout=10
+            )
             return response
 
     async def async_generate_image_to_text(self, ai_model: str, context: list, prompt: list):
@@ -34,9 +34,9 @@ class ChatGPT:
                 timeout=30
             )
             return response
-        except asyncio.TimeoutError:
-            response = await self.async_client_chat_gpt.chat.completions.create(model=ai_model, messages=context)
-            return response
-        except Exception:
-            response = await self.async_client_chat_gpt.chat.completions.create(model=ai_model, messages=context)
+        except Exception as e:
+            response = await asyncio.wait_for(
+                self.async_client_chat_gpt.chat.completions.create(model=ai_model, messages=context),
+                timeout=30
+            )
             return response
