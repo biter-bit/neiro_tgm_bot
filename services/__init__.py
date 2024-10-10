@@ -20,7 +20,8 @@ chat_gpt = ChatGPT(
     token=settings.OPENAI_API_KEY,
     base_url=settings.OPENAI_BASE_URL,
     token_not_off=settings.NOT_OFFICIAL_OPENAI_API_KEY,
-    base_url_not_off=settings.NOT_OFFICIAL_OPENAI_BASE_URL
+    base_url_not_off=settings.NOT_OFFICIAL_OPENAI_BASE_URL,
+    proxy_url=settings.PROXY
 )
 nlp_translator = Translator(token=settings.RAPID_API_TOKEN, proxy=settings.PROXY)
 midjourney_obj = MJ(token=settings.USEAPI_API_KEY)
