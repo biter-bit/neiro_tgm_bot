@@ -15,7 +15,7 @@ class ChatGPT:
         try:
             response = await asyncio.wait_for(
                 self.async_not_official_client_chat_gpt.chat.completions.create(model=ai_model, messages=context),
-                timeout=5
+                timeout=10
             )
             return response
         except asyncio.TimeoutError:
@@ -31,7 +31,7 @@ class ChatGPT:
         try:
             response = await asyncio.wait_for(
                 self.async_not_official_client_chat_gpt.chat.completions.create(model=ai_model, messages=context),
-                timeout=5
+                timeout=30
             )
             return response
         except asyncio.TimeoutError:
