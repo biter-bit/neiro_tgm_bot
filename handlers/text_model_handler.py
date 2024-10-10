@@ -3,9 +3,9 @@ from aiogram.types import Message
 
 from db_api.models import ChatSession
 from db_api.models import Profile
-from utils.enum import AiModelName
+from utils.enum import AiModelName, Messages
 from db_api import api_chat_session_async, api_text_query_async, api_profile_async
-from services import chat_gpt, redis
+from services import chat_gpt, redis, logger
 from openai import BadRequestError
 from .image_model_handler import generate_image_model
 from utils.features import check_limits_for_free_tariff, check_balance_profile
@@ -53,15 +53,27 @@ async def generate_text_model(message: Message, user_profile: Profile, session_p
             else:
                 await generate_image_model(message, user_profile)
         except BadRequestError as error:
+            logger.error(error)
             await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
             await api_chat_session_async.delete_context_from_session(session_profile.id, user_profile)
+            await message.answer(Messages.ERROR.value)
             if error.code == "context_length_exceeded":
                 # logger.error("BadRequestError error | MAX CONTEXT")
                 return {"status": "error", "code": "max_content", "result": "Превышен контекст"}
 
             # logger.error(f"BadRequestError error | {error}  {error.code}")
+            await message.answer(Messages.ERROR.value)
             return {"status": "error", "code": error.code, "result": ""}
 
+        except Exception as error:
+            logger.error(error)
+            await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
+            await api_chat_session_async.delete_context_from_session(session_profile.id, user_profile)
+            await message.answer(Messages.ERROR.value)
+            if error.code == "context_length_exceeded":
+                # logger.error("BadRequestError error | MAX CONTEXT")
+                return {"status": "error", "code": "max_content", "result": "Превышен контекст"}
+            return {"status": "error", "code": error.code, "result": ""}
 
 # пример решения с помощью http
 
