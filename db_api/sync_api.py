@@ -16,7 +16,7 @@ class DBApiSync(DataBaseApiInterface):
 
     def _create_engine(self):
         """Создание синхронного движка базы данных"""
-        self.engine_db = create_engine(url=settings.url_connect_with_psycopg2, echo=True)
+        self.engine_db = create_engine(url=settings.url_connect_with_psycopg2, echo=False)
 
     def _create_session(self):
         """Создание синхронной сессии для работы с базой данных"""

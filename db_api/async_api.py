@@ -22,7 +22,7 @@ class DBApiAsync(DataBaseApiInterface):
 
     def _create_engine(self):
         """Создание асинхронного движка базы данных"""
-        self.async_engine_db = create_async_engine(url=settings.url_connect_with_asyncpg, echo=True)
+        self.async_engine_db = create_async_engine(url=settings.url_connect_with_asyncpg, echo=False)
 
     def _create_session(self):
         """Создание асинхронной сессии для работы с базой данных"""
