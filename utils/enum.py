@@ -203,6 +203,18 @@ class Messages(Enum):
                 update_limit=formating_date,
             )
 
+class AdminButton(Enum):
+    """Класс с названиями кнопок в админке."""
+    GENERATE_LINK = 'Генерация ссылок'
+    STATISTIC = "Статистика"
+    DB_DOWNLOAD = "Скачать БД"
+    CREATE = "Создать"
+
+class AdminMessage(Enum):
+    """Класс с названиями сообщений в админке"""
+    NOT_ADMIN = "Вы не администратор!"
+    CHOOSE_ACTION = "Выберите действие:"
+    LINK_SECTION = "Раздел ссылок:"
 
 class MjOption(Enum):
     """Класс со способами запросов к mj api"""
@@ -230,6 +242,11 @@ class Errors(Enum):
     def error_tariff(cls, ai_model_id: str, tariff_name: str):
         return cls.ERROR_TARIFF.value.format(ai_model_id, tariff_name)
 
+class Price(Enum):
+    """Класс с ценами на premium sub"""
+    STARS = 190
+    RUB = 489
+
 class AiModelName(Enum):
     """Класс с названиями нейросетей"""
     GPT_4_O = "gpt-4o"
@@ -241,21 +258,41 @@ class AiModelName(Enum):
 
     @classmethod
     def get_list_value(cls):
+        """Получить список значений всех моделей."""
         result = []
         for i in cls:
             result.append(i.value)
         return result
 
     @classmethod
+    def get_list_text_value_model(cls):
+        """Получить список значений текстовых моделей."""
+        result = []
+        for i in cls:
+            if i.value in (cls.GPT_4_O.value, cls.GPT_4_O_MINI.value, cls.GPT_O1_MINI.value, cls.GPT_O1_PREVIEW.value):
+                result.append(i)
+        return result
+
+    @classmethod
+    def get_list_image_value_model(cls):
+        """Получить список значений моделей изображений."""
+        result = []
+        for i in cls:
+            if i.value in (cls.MIDJOURNEY_5_2.value, cls.MIDJOURNEY_6_0.value):
+                result.append(i)
+        return result
+
+    @classmethod
     def get_need_format(cls, model):
+        """Создать нужный формат названия моделей для отображения пользователю."""
         result = ''
         if model == cls.GPT_4_O.value:
             result = 'GPT-4o'
         elif model == cls.GPT_4_O_MINI.value:
             result = 'GPT-4o-mini'
-        elif model == cls.MIDJOURNEY_5_2.value:
-            result = 'Midjourney 6.0'
         elif model == cls.MIDJOURNEY_6_0.value:
+            result = 'Midjourney 6.0'
+        elif model == cls.MIDJOURNEY_5_2.value:
             result = 'Midjourney 5.2'
         elif model == cls.GPT_O1_PREVIEW.value:
             result = 'o1-preview'

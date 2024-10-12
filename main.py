@@ -5,11 +5,13 @@ from middlewares import ProfileMiddleware, MainMiddleware, RedirectGroupMiddlewa
 from services import bot, dp, scheduler
 from utils.scheduler import update_limits, check_subscription
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 # Запуск APScheduler
 async def on_startup():
-    scheduler.add_job(update_limits, CronTrigger(hour=0, minute=0))
-    scheduler.add_job(check_subscription, CronTrigger(hour=0, minute=0))
+    """Запусти фоновые задачи"""
+    scheduler.add_job(update_limits, IntervalTrigger(minutes=1)) # обновляет ежедневные лимиты
+    scheduler.add_job(check_subscription, IntervalTrigger(minutes=28)) # проверяет актуальность подписки и выполняет соответствующие действия
     scheduler.start()
 
 async def main():

@@ -1,5 +1,5 @@
 from aiogram.fsm.state import StatesGroup, State
 
-class TypeState(StatesGroup):
+class TypeAiState(StatesGroup):
     image = State()
     text = State()

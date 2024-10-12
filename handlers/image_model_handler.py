@@ -2,22 +2,23 @@ from aiogram import Router, F
 from aiogram.types import Message, FSInputFile, URLInputFile, CallbackQuery
 
 from db_api.models import ImageQuery
-from db_api.models import Profile, ChatSession
+from db_api.models import Profile
 from utils.enum import AiModelName, MjOption
-from db_api import api_chat_session_async, api_profile_async, api_image_query_async
+from db_api import api_chat_session_async, api_image_query_async
 from utils.features import (finish_generation_image, get_image_part, create_safe_filename, check_access_for_generic,
                             make_request, create_photo, delete_image)
 from services import nlp_translator, midjourney_obj
-from aiogram.fsm.context import FSMContext
-from states.type_generation import TypeState
+from states.type_generation import TypeAiState
+from utils.features import get_session_for_profile
 import asyncio
 from utils.callbacks import MJCallback
 from buttons.mjoption_ib import create_inline_kb_for_image
 from config import settings
-from services import logger, redis
+from services import logger
 import re
 from utils.enum import Errors
 import json
+from utils.cache import set_cache_profile
 
 image_router = Router()
 
@@ -50,14 +51,15 @@ async def check_task_mj(message: Message, result_task_generic: dict, user_profil
                 url_photo=result_task["result"]['attachments'][0]['url'], profile=user_profile,
                 image_id=image_query.id
             )
-            await redis.set(profile.tgid, json.dumps(profile.to_dict()))
+            await set_cache_profile(profile.tgid, json.dumps(profile.to_dict()))
             break
         await asyncio.sleep(5)
     return "Ok"
 
-@image_router.message(TypeState.image)
-async def generate_image_model(message: Message, user_profile: Profile, session_profile: ChatSession):
+@image_router.message(TypeAiState.image)
+async def generate_image_model(message: Message, user_profile: Profile):
     """Сгенерируй изображение по запросу"""
+    session_profile = await get_session_for_profile(user_profile, user_profile.ai_model_id)
     access_to_generic = check_access_for_generic(user_profile, session_profile)
     if access_to_generic["status"] != Errors.NON_ERROR.name:
         logger.info(access_to_generic["result"])
@@ -99,7 +101,8 @@ async def generate_image_model(message: Message, user_profile: Profile, session_
             await api_chat_session_async.deactivate_generic_in_session(session_profile.id)
 
 @image_router.callback_query(MJCallback.filter(F.action == MjOption.VARIATION))
-async def generate_variation_image_model(query: CallbackQuery, user_profile: Profile, callback_data: MJCallback, session_profile: ChatSession):
+async def generate_variation_image_model(query: CallbackQuery, user_profile: Profile, callback_data: MJCallback):
+    session_profile = await get_session_for_profile(user_profile, user_profile.ai_model_id)
     text_button = f"{'V'}{callback_data.index}"
     query_id = callback_data.mj_query_id.hex
 
@@ -123,6 +126,13 @@ async def generate_variation_image_model(query: CallbackQuery, user_profile: Pro
             return await query.message.answer("❌ Во время генерации произошла ошибка. Попробуйте написать запрос заново.")
 
         image_query = await api_image_query_async.create_image_query(image_query.query, session_profile.id, result_task_generic["result"]['jobid'])
+
+        msg = await query.message.bot.edit_message_text(
+            chat_id=query.message.chat.id,
+            message_id=msg.message_id,
+            text="🚶‍♂️🚶‍♀️ Ваш запрос в очереди на генерацию..."
+        )
+
         await check_task_mj(query.message, result_task_generic, user_profile, image_query, msg)
     except Exception as e:
         logger.error(e)
@@ -131,7 +141,8 @@ async def generate_variation_image_model(query: CallbackQuery, user_profile: Pro
 
 
 @image_router.callback_query(MJCallback.filter(F.action == MjOption.UPSAMPLE))
-async def generate_variation_image_model(query: CallbackQuery, user_profile: Profile, callback_data: MJCallback, session_profile: ChatSession):
+async def generate_variation_image_model(query: CallbackQuery, user_profile: Profile, callback_data: MJCallback):
+    session_profile = await get_session_for_profile(user_profile, user_profile.ai_model_id)
     text_button = f"{'V'}{callback_data.index}"
     query_id = callback_data.mj_query_id.hex
 
