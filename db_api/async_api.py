@@ -574,6 +574,21 @@ class ApiProfileAsync(DBApiAsync):
                 profile.chatgpt_o1_preview_daily_limit -= 1
             elif model_id == AiModelName.GPT_O1_MINI.value:
                 profile.chatgpt_o1_mini_daily_limit -= 1
+            await session.commit()
+            await session.refresh(profile)
+            return profile
+
+    async def add_request_count(self, profile_id: int) -> Profile:
+        """Добавь кол-во запросов пользователю."""
+        async with self.async_session_db() as session:
+            query = (
+                select(Profile)
+                .filter_by(id=profile_id)
+                .options(joinedload(Profile.tariffs))
+                .options(joinedload(Profile.ai_models_id))
+            )
+            result = await session.execute(query)
+            profile = result.unique().scalars().first()
             profile.count_request += 1
             await session.commit()
             await session.refresh(profile)
