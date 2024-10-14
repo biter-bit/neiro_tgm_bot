@@ -215,6 +215,7 @@ class AdminMessage(Enum):
     NOT_ADMIN = "Вы не администратор!"
     CHOOSE_ACTION = "Выберите действие:"
     LINK_SECTION = "Раздел ссылок:"
+    INPUT_NAME_LINK = "Введите название ссылки:"
 
 class MjOption(Enum):
     """Класс со способами запросов к mj api"""

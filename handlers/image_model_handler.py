@@ -8,7 +8,7 @@ from db_api import api_chat_session_async, api_image_query_async
 from utils.features import (finish_generation_image, get_image_part, create_safe_filename, check_access_for_generic,
                             make_request, create_photo, delete_image)
 from services import nlp_translator, midjourney_obj
-from states.type_generation import TypeAiState
+from utils.states import TypeAiState
 from utils.features import get_session_for_profile
 import asyncio
 from utils.callbacks import MJCallback

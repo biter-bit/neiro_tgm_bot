@@ -6,7 +6,7 @@ from utils.enum import Messages
 from db_api import api_profile_async, api_ai_model_async, db_api_async_obj
 from db_api.models import Profile
 from aiogram.fsm.context import FSMContext
-from states.type_generation import TypeAiState
+from utils.states import TypeAiState
 from buttons.choose_mode_ib import gen_choose_mode_kb
 from utils.callbacks import ModeCallback
 from aiogram.exceptions import TelegramBadRequest

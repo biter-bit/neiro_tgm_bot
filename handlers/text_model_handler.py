@@ -1,4 +1,4 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, ContentType
 
@@ -9,7 +9,7 @@ from services import chat_gpt, logger, bot
 from openai import BadRequestError
 from .image_model_handler import generate_image_model
 from utils.features import check_start_text_generate, get_session_for_profile
-from states.type_generation import TypeAiState
+from utils.states import TypeAiState
 import json
 from io import BytesIO
 import base64

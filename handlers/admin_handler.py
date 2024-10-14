@@ -1,8 +1,12 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import Message, FSInputFile, CallbackQuery
+
+from db_api import api_ref_link_async
+from utils.states import CreateRefLinkState, TypeAiState
+from aiogram.fsm.context import FSMContext
 from db_api.models import Profile
 from aiogram.filters import Command
-from utils.enum import AdminMessage
+from utils.enum import AdminMessage, AiModelName
 from utils.features import get_statistic
 from buttons.admin_ib import create_inline_kb_admin, create_inline_kb_generate_link
 from utils.callbacks import GenerateLinkCallback, DownloadDBCallback, StatisticCallback, CreateRefLinkCallback
@@ -18,7 +22,7 @@ async def func_admin_handler(message: Message, user_profile: Profile):
     await message.answer(AdminMessage.CHOOSE_ACTION.value, reply_markup=markup)
 
 @admin_router.callback_query(GenerateLinkCallback.filter())
-async def callback_generate_links(query: CallbackQuery):
+async def callback_generate_link(query: CallbackQuery):
     markup = await create_inline_kb_generate_link()
     await query.message.answer(AdminMessage.LINK_SECTION.value, reply_markup=markup)
 
@@ -34,5 +38,15 @@ async def callback_download_db(query: CallbackQuery):
     await query.message.answer("download_db")
 
 @admin_router.callback_query(CreateRefLinkCallback.filter())
-async def callback_generate_links(query: CallbackQuery):
-    await query.message.answer("create_ref_link")
+async def callback_create_ref_link(query: CallbackQuery, state: FSMContext):
+    await state.set_state(CreateRefLinkState.create)
+    await query.message.answer(AdminMessage.INPUT_NAME_LINK.value)
+
+@admin_router.message(CreateRefLinkState.create)
+async def create_ref_link(message: Message, state: FSMContext, user_profile: Profile):
+    ref_link = await api_ref_link_async.create_ref_link(message.text, user_profile.id)
+    if user_profile.ai_models_id in AiModelName.get_list_text_value_model():
+        await state.set_state(TypeAiState.text)
+    else:
+        await state.set_state(TypeAiState.image)
+    await message.answer(f"Ваша ссылка:\n\n<i>{ref_link.link}</i>", parse_mode='HTML')

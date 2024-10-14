@@ -11,13 +11,5 @@ start_router = Router()
 @start_router.message(CommandStart())
 async def cmd_start(message: types.Message):
     """Обработай запрос команды /start"""
-    list_arg = message.text.split(' ')
-    if len(list_arg) == 2:
-        try:
-            num_link = int(list_arg[1])
-            await api_ref_link_async.add_click(f'{settings.USERNAME_BOT}?start={num_link}')
-        except TypeError as e:
-            logger.error("Команда /start с данным аргументом не работает")
-
     message_start = Messages.START.value
     await message.answer(message_start, reply_markup=ReplyKeyboardRemove())

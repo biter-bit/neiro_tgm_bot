@@ -6,7 +6,7 @@ from buttons.payment_kb import gen_pay_inline_kb, gen_confirm_pay_kb
 from config import settings
 from utils.enum import Messages, PaymentName, Price
 from utils.callbacks import PaymentCallback
-from db_api import api_invoice_async, api_profile_async, api_tariff_async
+from db_api import api_invoice_async, api_profile_async, api_tariff_async, api_ref_link_async
 from services import robokassa_obj
 import json
 from utils.cache import set_cache_profile
@@ -58,6 +58,9 @@ async def success_payment_handler(message: Message, user_profile: Profile):
     inv_id = int(message.successful_payment.invoice_payload)
     invoice = await api_invoice_async.pay_invoice(inv_id)
     profile = await api_profile_async.update_subscription_profile(invoice.profiles.id, invoice.tariffs.id)
+    if profile.referal_link_id:
+        await api_ref_link_async.add_count_buy(profile.referal_link_id)
+        await api_ref_link_async.add_sum_buy(profile.referal_link_id, Price.STARS.value, PaymentName.STARS.value)
     await set_cache_profile(profile.tgid, json.dumps(profile.to_dict()))
     await message.bot.refund_star_payment(message.from_user.id, message.successful_payment.telegram_payment_charge_id)
     await message.answer(text="Success")
