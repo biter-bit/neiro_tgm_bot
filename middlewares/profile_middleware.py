@@ -35,6 +35,8 @@ class ProfileMiddleware(BaseMiddleware):
                     ref_link_id = ref_link.id
             except TypeError as e:
                 logger.error("Команда /start с данным аргументом не работает.")
+            except ValueError as e:
+                logger.error("Забей")
             except AttributeError as e:
                 logger.error("В event.text значение None.")
 
