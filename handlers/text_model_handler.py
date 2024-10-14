@@ -93,7 +93,7 @@ async def generate_text_model(message: Message, user_profile: Profile):
                         except TelegramBadRequest:
                             await message.answer(text=part)
 
-                if user_profile.ai_model_id == AiModelName.GPT_4_O.value and user_profile.chatgpt_4o_daily_limit > 0:
+                if user_profile.ai_model_id in text_models_openai and user_profile.chatgpt_4o_daily_limit > 0:
                     profile = await api_profile_async.subtracting_count_request_to_model_gpt(user_profile.id, user_profile.ai_model_id)
                     await set_cache_profile(user_profile.tgid, json.dumps(profile.to_dict()))
                 await api_chat_session_async.deactivate_generic_in_session(session_profile.id)

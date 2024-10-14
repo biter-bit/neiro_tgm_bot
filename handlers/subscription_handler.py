@@ -41,7 +41,7 @@ async def payment_stars_handler(callback: types.CallbackQuery, user_profile: Pro
         title=description,
         description=description,
         currency="XTR",
-        prices=[LabeledPrice(label=description, amount=1)],
+        prices=[LabeledPrice(label=description, amount=Price.STARS.value)],
         payload=str(invoice.id),
         provider_token="",
     )
@@ -62,7 +62,7 @@ async def success_payment_handler(message: Message, user_profile: Profile):
         await api_ref_link_async.add_count_buy(profile.referal_link_id)
         await api_ref_link_async.add_sum_buy(profile.referal_link_id, Price.STARS.value, PaymentName.STARS.value)
     await set_cache_profile(profile.tgid, json.dumps(profile.to_dict()))
-    await message.bot.refund_star_payment(message.from_user.id, message.successful_payment.telegram_payment_charge_id)
+    # await message.bot.refund_star_payment(message.from_user.id, message.successful_payment.telegram_payment_charge_id)
     await message.answer(text="Success")
 
 @pay_router.callback_query(PaymentCallback.filter(F.option == PaymentName.ROBOKASSA))

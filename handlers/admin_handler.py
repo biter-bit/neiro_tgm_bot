@@ -1,13 +1,13 @@
 from aiogram import Router, F
 from aiogram.types import Message, FSInputFile, CallbackQuery
 
-from db_api import api_ref_link_async
+from db_api import api_ref_link_async, api_profile_async
 from utils.states import CreateRefLinkState, TypeAiState
 from aiogram.fsm.context import FSMContext
 from db_api.models import Profile
 from aiogram.filters import Command
-from utils.enum import AdminMessage, AiModelName
-from utils.features import get_statistic
+from utils.enum import AdminMessage, AiModelName, AdminButton
+from utils.features import get_basic_statistic, get_ref_statistic
 from buttons.admin_ib import create_inline_kb_admin, create_inline_kb_generate_link
 from utils.callbacks import GenerateLinkCallback, DownloadDBCallback, StatisticCallback, CreateRefLinkCallback
 
@@ -26,12 +26,16 @@ async def callback_generate_link(query: CallbackQuery):
     markup = await create_inline_kb_generate_link()
     await query.message.answer(AdminMessage.LINK_SECTION.value, reply_markup=markup)
 
-@admin_router.callback_query(StatisticCallback.filter())
-async def callback_statistics(query: CallbackQuery):
-    await query.message.answer("statistic")
-    # file_path = await get_statistic()
-    # file = FSInputFile(file_path)
-    # await query.message.answer_document(file)
+@admin_router.callback_query(StatisticCallback.filter(F.option == AdminButton.STATISTIC))
+async def callback_basic_statistics(query: CallbackQuery):
+    stat = await get_basic_statistic()
+    await query.message.answer(stat)
+
+@admin_router.callback_query(StatisticCallback.filter(F.option == AdminButton.STATISTIC_REF))
+async def callback_ref_statistics(query: CallbackQuery, user_profile: Profile):
+    stat_list = await get_ref_statistic(user_profile.id)
+    for stat in stat_list:
+        await query.message.answer(stat)
 
 @admin_router.callback_query(DownloadDBCallback.filter())
 async def callback_download_db(query: CallbackQuery):

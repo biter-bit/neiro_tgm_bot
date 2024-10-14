@@ -203,10 +203,100 @@ class Messages(Enum):
                 update_limit=formating_date,
             )
 
+
+import textwrap
+from enum import Enum
+
+
+class BotStatTemplate(Enum):
+    """Класс с шаблонами статистики для бота"""
+
+    STAT_BASIC_TEMPLATE = textwrap.dedent(
+        """
+        Статистика текущего дня:
+
+        👥 Пользователи:
+        ├ Всего: {total_users}
+        └ Реф. ссылки: {ref_links}
+
+        📈 Новые за сутки:
+        ├ Всего: {new_users}
+        └ С реф. ссылок: {new_users_with_ref}
+
+        📊 MAU:
+        ├ За день: {mau_day}
+        └ За 30 дней: {mau_month}
+
+        🏃 Статистика за сутки по нейросетям:
+        ├ Всего запросов: {total_requests}
+        ├ ChatGPT 4o: {chatgpt_4o}
+        ├ ChatGPT 4o mini: {chatgpt_4o_mini}
+        ├ ChatGPT o1-preview: {chatgpt_o1_preview}
+        ├ ChatGPT o1-mini: {chatgpt_o1_mini}
+        ├ Midjourney: {midjourney}
+        ├ Запросы ГПТ из чата: {gpt_chat_requests}
+        └ Запросы IMG из чата: {img_chat_requests}
+
+        💰 Платежи:
+        ├ Подписок Telegram Stars: {telegram_stars_subs}
+        │└ Общий оборот: {telegram_stars_sales}шт на {telegram_stars_sum}⭐️
+        │
+        ├ Подписок Robokassa: {robokassa_subs}
+        │├ Общий оборот: {new_robokassa_subs}шт на сумму {new_robokassa_sum}₽
+        └└Продлений: {renewals}
+        """
+    )
+
+    STAT_REF_TEMPLATE = textwrap.dedent(
+        """
+        Статистика по ссылке "{ref_name}":
+        
+        ├ 🔗 {ref_link}
+        ├ {total_clicks} всего переходов
+        ├ {new_registrations} новых регистраций
+        ├ {subscribers} подписчиков
+        ├ {purchases_stars}⭐️ покупок
+        └ {purchases_rub}₽ покупок
+        """
+    )
+
+    @classmethod
+    def generate_basic_stat(cls, total_users=0, ref_links=0, new_users=0, new_users_with_ref=0, mau_day=0, mau_month=0,
+                            total_requests=0, chatgpt_4o=0, chatgpt_4o_mini=0, chatgpt_o1_preview=0, chatgpt_o1_mini=0,
+                            midjourney=0, gpt_chat_requests=0, img_chat_requests=0, telegram_stars_subs=0,
+                            telegram_stars_sales=0, telegram_stars_sum=0, robokassa_subs=0, new_robokassa_subs=0,
+                            new_robokassa_sum=0, renewals=0):
+        """Генерация базовой статистики с подстановкой значений с помощью f-строк"""
+        return f"""
+        {cls.STAT_BASIC_TEMPLATE.value.format(
+            total_users=total_users, ref_links=ref_links, new_users=new_users,
+            new_users_with_ref=new_users_with_ref, mau_day=mau_day, mau_month=mau_month,
+            total_requests=total_requests, chatgpt_4o=chatgpt_4o, chatgpt_4o_mini=chatgpt_4o_mini,
+            chatgpt_o1_preview=chatgpt_o1_preview, chatgpt_o1_mini=chatgpt_o1_mini, midjourney=midjourney,
+            gpt_chat_requests=gpt_chat_requests, img_chat_requests=img_chat_requests,
+            telegram_stars_subs=telegram_stars_subs, telegram_stars_sales=telegram_stars_sales,
+            telegram_stars_sum=telegram_stars_sum, robokassa_subs=robokassa_subs, 
+            new_robokassa_subs=new_robokassa_subs, new_robokassa_sum=new_robokassa_sum, renewals=renewals
+        )}
+        """
+
+    @classmethod
+    def generate_ref_stat(cls, ref_name=0, ref_link=0, total_clicks=0, new_registrations=0,
+                          subscribers=0, purchases_rub=0, purchases_stars=0):
+        """Генерация статистики реферальных ссылок с подстановкой значений с помощью f-строк"""
+        return f"""
+        {cls.STAT_REF_TEMPLATE.value.format(
+            ref_name=ref_name, ref_link=ref_link, total_clicks=total_clicks,
+            new_registrations=new_registrations, subscribers=subscribers, purchases_stars=purchases_stars, purchases_rub=purchases_rub
+        )}
+        """
+
+
 class AdminButton(Enum):
     """Класс с названиями кнопок в админке."""
     GENERATE_LINK = 'Генерация ссылок'
-    STATISTIC = "Статистика"
+    STATISTIC = "Общая статистика"
+    STATISTIC_REF = "Реф. статистика"
     DB_DOWNLOAD = "Скачать БД"
     CREATE = "Создать"
 

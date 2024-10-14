@@ -3,14 +3,16 @@ from PIL import Image
 import os
 import hashlib
 from typing import Optional
+
 from services import bot, logger
-from utils.enum import AiModelName
+from utils.enum import AiModelName, PaymentName
 from uuid import UUID
-from db_api import api_profile_async, api_image_query_async, api_chat_session_async
+from db_api import api_profile_async, api_image_query_async, api_chat_session_async, api_ref_link_async, \
+    api_text_query_async, api_invoice_async, api_tariff_async
 from utils.cache import set_cache_profile, serialization_profile, get_cache_profile, deserialization_profile
 import httpx
 import json
-from utils.enum import Errors
+from utils.enum import Errors, BotStatTemplate
 import sqlalchemy
 from aiogram.types import Message, User
 import pandas
@@ -56,9 +58,9 @@ async def make_request(url):
 async def finish_generation_image(url_photo: str, image_id: UUID, profile: Profile) -> Profile:
     """Сделай все основные действий после генерации"""
     await api_image_query_async.save_answer_query(url_photo, image_id)
-    if profile.ai_model_id == AiModelName.MIDJOURNEY_5_2.value() and profile.mj_daily_limit_5_2 > 0:
+    if profile.ai_model_id == AiModelName.MIDJOURNEY_5_2.value and profile.mj_daily_limit_5_2 > 0:
         profile = await api_profile_async.subtracting_count_request_to_model_mj(profile.id, "5.2")
-    elif profile.ai_models_id == AiModelName.MIDJOURNEY_6_0.value() and profile.mj_daily_limit_6_0 > 0:
+    elif profile.ai_model_id == AiModelName.MIDJOURNEY_6_0.value and profile.mj_daily_limit_6_0 > 0:
         profile = await api_profile_async.subtracting_count_request_to_model_mj(profile.id, "6.0")
     return profile
 
@@ -142,111 +144,52 @@ async def generic_table_excel():
     df.to_excel(file_path, index=False)
     return file_path
 
-async def generic_html(data_dict: dict):
-    data = f"""
-    <!doctype html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport"
-              content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-        <title>Отчёт по ссылкам</title>
-    </head>
-    <body>
-        <div class="container">
-            <h3 class="h4 text-center mt-4">Статистика текущего дня</h3>
-            <div>
-                👥 <b>Пользователи:</b><br>
-                ├ Всего: {data_dict["count_users"]}<br>
-                └ Реф. ссылки: {data_dict["count_ref_links"]}<br><br>
-                📈 <b>Новые за сутки:</b><br>
-                ├ Всего: {data_dict["count_new_users_for_day"]}<br>
-                ├ С реф. ссылок: {data_dict["count_new_users_for_day_with_ref_links"]}<br>
-                └ С поиска: 1396<br><br>
-                🎓 <b>Обучение:</b><br>
-                ├ Всего: 76776<br>
-                └ За сутки: 11<br><br>
-                📊<b>MAU:</b><br>
-                ├ За день: 10890<br>
-                └ За 30 дней: 202354<br><br>
-                🏃 <b>Статистика за сутки по нейросетям:</b><br>
-                ├ Всего запросов: 42247<br>
-                ├ ChatGPT 3.5: 163<br>
-                ├ ChatGPT 4: 0<br>
-                ├ ChatGPT 4 o: 1<br>
-                ├ ChatGPT 4 turbo: 0<br>
-                ├ ЯндексGPT: 0<br>
-                ├ ЯндексGPT Lite: 0<br>
-                ├ Bard: 41567<br>
-                ├ Claude Haiku: 0<br>
-                ├ Claude Sonnet: 0<br>
-                ├ Claude Opus: 0<br>
-                ├ StableDiffusion: 429<br>
-                ├ DallE-2: 0<br>
-                ├ DallE-3: 2<br>
-                ├ Midjourney: 1<br>
-                ├ Kandinsky: 84<br>
-                ├ Текст в видео: 0<br>
-                ├ Изображение в видео: 0<br>
-                ├ Удаление фона видео: 0<br>
-                ├ Видео в мульт: 0<br>
-                ├ PicaArt: 0<br>
-                ├ Запросы ГПТ из чата: 38<br>
-                └ Запросы IMG из чата: 7<br><br>
-                👨‍🎓 <b>Статистика за сутки по сервисам:</b><br>
-                ├ Для учебы: 11<br>
-                │├ Генерация работ ChatGpt: 5<br>
-                │├ Генерация работ Gemini: 6<br>
-                │├ Генерация работ Claude: 0<br>
-                │├ Рерайтинг: 0<br>
-                │├ Решение по фото: 0<br>
-                │└ Решение по фото PRO: 5<br>
-                ├ Для работы: 0<br>
-                │├ Генерация статьи: 0<br>
-                │└ Анализ по ключу: 0<br>
-                ├ Другие: 0<br>
-                │├ Youtube Summary: 0<br>
-                │├ Текст в речь: 0<br>
-                │├ Речь в текст: 0<br>
-                │├ Антиплагиат: 0<br>
-                │├ Таро: 2<br>
-                └┴ Удаление фона: 0<br><br>
-                💰 <b>Платежи:</b><br>
-                ├ Подписок Telegram Stars: 30<br>
-                │├ Продажи подписок: 0шт на сумму 0₽<br>
-                │├ Продажи токенов: 1000₽<br>
-                │├ Покупок за 660 ⭐️ : 0<br>
-                │├ Покупок за 1100 ⭐️: 0<br>
-                │├ Покупок за 2000 ⭐️: 0<br>
-                │├ Покупок за 3500 ⭐️: 0<br>
-                │├ Средний чек: 0₽<br>
-                │└ Общий оборот: 1000₽<br>
-                │<br>
-                ├ Подписок Robokassa: 589<br>
-                │├ Новых подписок: 5шт на сумму 2450₽<br>
-                │├ Продажи токенов: 0₽<br>
-                │├ Покупок за 450₽: 5<br>
-                │├ Покупок за 990₽: 0<br>
-                │├ Покупок за 1800₽: 0<br>
-                │├ Покупок за 3200₽: 0<br>
-                │├ Продлений: 5<br>
-                │├ Средний чек: 490₽<br>
-                └└ Общий оборот: 2450₽
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    with open("my_page.html", "w") as file:
-        file.write(data)
-    return f'{settings.PATH_WORK}/my_page.html'
+async def get_basic_statistic():
+    total_user = await api_profile_async.get_count_profiles()
+    total_user_with_ref = await api_ref_link_async.get_count_ref_links()
+    total_user_for_day = await api_profile_async.get_profiles_created_last_24_hours()
+    total_user_for_day_with_ref = await api_profile_async.get_profiles_created_last_24_hours_with_ref()
+    total_user_for_day_from_query = await api_chat_session_async.get_count_unique_profile_count_from_queries_for_24_hours()
+    total_user_for_month_from_query = await api_chat_session_async.get_count_unique_profile_count_from_queries_for_month()
+    total_query_for_day = await api_chat_session_async.get_count_query_for_day()
+    total_query_text_for_day_gpt_4_O = await api_text_query_async.get_count_query_select_text_model_ai_for_day(AiModelName.GPT_4_O.value)
+    total_query_text_for_day_gpt_4o_mini = await api_text_query_async.get_count_query_select_text_model_ai_for_day(AiModelName.GPT_4_O_MINI.value)
+    total_query_text_for_day_gpt_o1_preview = await api_text_query_async.get_count_query_select_text_model_ai_for_day(AiModelName.GPT_O1_PREVIEW.value)
+    total_query_text_for_day_gpt_o1_mini = await api_text_query_async.get_count_query_select_text_model_ai_for_day(AiModelName.GPT_O1_MINI.value)
+    total_query_image_for_day_mj = await api_image_query_async.get_count_query_select_image_model_ai_for_day()
+    total_query_text_model = sum([
+        total_query_text_for_day_gpt_4_O, total_query_text_for_day_gpt_4o_mini, total_query_text_for_day_gpt_o1_preview,
+        total_query_text_for_day_gpt_o1_mini
+    ])
+    total_sub_for_stars = await api_invoice_async.get_count_sub(PaymentName.STARS.name)
+    total_sub_for_rub = await api_invoice_async.get_count_sub(PaymentName.ROBOKASSA.name)
+    sales_amount_for_stars = await api_tariff_async.get_sum_sub(PaymentName.STARS.name)
+    sales_amount_for_rub = await api_tariff_async.get_sum_sub(PaymentName.ROBOKASSA.name)
+    total_renewals_profile = await api_invoice_async.get_number_of_renewals_profile()
 
-async def get_statistic():
-    file_path = await generic_html()
-    return file_path
+    stat = BotStatTemplate.generate_basic_stat(
+        total_user, total_user_with_ref, total_user_for_day, total_user_for_day_with_ref, total_user_for_day_from_query,
+        total_user_for_month_from_query, total_query_for_day, total_query_text_for_day_gpt_4_O,
+        total_query_text_for_day_gpt_4o_mini, total_query_text_for_day_gpt_o1_preview,
+        total_query_text_for_day_gpt_o1_mini, total_query_image_for_day_mj, total_query_text_model,
+        total_query_image_for_day_mj, total_sub_for_stars, total_sub_for_stars, sales_amount_for_stars,
+        total_sub_for_rub, total_sub_for_rub, sales_amount_for_rub, total_renewals_profile
 
+    )
+    return stat
+
+async def get_ref_statistic(owner_id):
+    list_stat = []
+    ref_links_owner = await api_ref_link_async.get_ref_links_of_owner(owner_id)
+    for ref_link in ref_links_owner:
+        sum_rub_for_ref_link = await api_tariff_async.get_sum_payment_profile_for_ref_link(ref_link.id, PaymentName.ROBOKASSA.name)
+        sum_stars_for_ref_link = await api_tariff_async.get_sum_payment_profile_for_ref_link(ref_link.id, PaymentName.STARS.name)
+        stat = BotStatTemplate.generate_ref_stat(
+            ref_link.name, ref_link.link, ref_link.count_clicks, ref_link.count_new_users,
+            ref_link.count_buys, sum_rub_for_ref_link, sum_stars_for_ref_link
+        )
+        list_stat.append(stat)
+    return list_stat
 
 async def get_session_for_profile(profile: Profile, ai_model_id: int) -> ChatSession:
     try:

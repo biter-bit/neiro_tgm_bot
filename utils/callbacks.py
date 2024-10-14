@@ -1,11 +1,11 @@
 from sys import prefix
 
 from aiogram.filters.callback_data import CallbackData
-from utils.enum import MjOption, PaymentName, AiModelName
+from utils.enum import MjOption, PaymentName, AiModelName, AdminButton
 from uuid import UUID
 
 class StatisticCallback(CallbackData, prefix="statistic"):
-    pass
+    option: AdminButton
 
 class GenerateLinkCallback(CallbackData, prefix="generate_link"):
     pass
