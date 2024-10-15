@@ -12,7 +12,7 @@ class RedirectGroupMiddleware(BaseMiddleware):
     ) -> Any:
         if isinstance(event, types.Message):
             # Проверяем, является ли чат группой или каналом
-            if event.chat.type != enums.ChatType.PRIVATE and not event.text.startswith('/ask'):
+            if event.chat.type != enums.ChatType.PRIVATE and event.text and not event.text.startswith('/ask'):
                 # Вызываем обработчик для группового чата
                 return await self.generate_text_in_group(event, data)
 

@@ -14,6 +14,7 @@ import httpx
 import json
 from utils.enum import Errors, BotStatTemplate
 import sqlalchemy
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, User
 import pandas
 from config import settings
@@ -110,7 +111,10 @@ def check_limits_for_free_tariff(profile: Profile):
 
 async def check_start_text_generate(message: Message, user_profile: Profile, session_profile: ChatSession) -> dict:
     if session_profile.active_generation:
-        await message.delete()
+        try:
+            await message.delete()
+        except TelegramBadRequest as e:
+            logger.error("Сообщение не может быть удалено!")
         return {'text': 'Генерация активна', 'status': True}
     elif user_profile.tariffs.name == "Free" and user_profile.ai_model_id in ("gpt-4o", "o1-mini", "o1-preview"):
         return {'text': "Для доступа к этой модели поменяйте тариф!", 'status': True}
@@ -195,7 +199,18 @@ async def get_session_for_profile(profile: Profile, ai_model_id: int) -> ChatSes
     try:
         session_profile = await api_chat_session_async.get_or_create_session(profile, ai_model_id)
     except sqlalchemy.exc.IntegrityError as e:
-        logger.info(f"Профиль {profile.tgid} не найден. Поэтому был создан новый.")
+        logger.error(f"Профиль {profile.tgid} не найден. Поэтому был создан новый.")
+        profile = await api_profile_async.get_or_create_profile(
+            tgid=profile.id,
+            username=profile.username,
+            first_name=profile.first_name,
+            last_name=profile.last_name,
+            url=profile.url
+        )
+        await set_cache_profile(profile.tgid, await serialization_profile(profile))
+        session_profile = await api_chat_session_async.get_or_create_session(profile, ai_model_id)
+    except Exception:
+        logger.error(f"Что-то с сессией.")
         profile = await api_profile_async.get_or_create_profile(
             tgid=profile.id,
             username=profile.username,
