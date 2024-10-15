@@ -10,7 +10,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 # Запуск APScheduler
 async def on_startup():
     """Запусти фоновые задачи"""
-    scheduler.add_job(update_limits, IntervalTrigger(minutes=1)) # обновляет ежедневные лимиты
+    scheduler.add_job(update_limits, CronTrigger(hour=0, minute=0)) # обновляет ежедневные лимиты
     scheduler.add_job(check_subscription, IntervalTrigger(minutes=28)) # проверяет актуальность подписки и выполняет соответствующие действия
     scheduler.start()
 
