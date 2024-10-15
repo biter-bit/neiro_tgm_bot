@@ -14,7 +14,7 @@ import httpx
 import json
 from utils.enum import Errors, BotStatTemplate
 import sqlalchemy
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.types import Message, User
 import pandas
 from config import settings
@@ -115,6 +115,8 @@ async def check_start_text_generate(message: Message, user_profile: Profile, ses
             await message.delete()
         except TelegramBadRequest as e:
             logger.error("Сообщение не может быть удалено!")
+        except TelegramForbiddenError as e:
+            logger.error("Бот был удален из группового чата")
         return {'text': 'Генерация активна', 'status': True}
     elif user_profile.tariffs.name == "Free" and user_profile.ai_model_id in ("gpt-4o", "o1-mini", "o1-preview"):
         return {'text': "Для доступа к этой модели поменяйте тариф!", 'status': True}
