@@ -3,5 +3,6 @@
 from .profile_middleware import ProfileMiddleware
 from .main_middleware import MainMiddleware
 from .redirect_group import RedirectGroupMiddleware
+from .exception_middleware import ExceptionMiddleware
 
-__all__ = [ProfileMiddleware, MainMiddleware, RedirectGroupMiddleware]
+__all__ = [ExceptionMiddleware, ProfileMiddleware, MainMiddleware, RedirectGroupMiddleware]

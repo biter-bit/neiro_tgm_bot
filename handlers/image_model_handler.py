@@ -19,6 +19,7 @@ import re
 from utils.enum import Errors
 import json
 from utils.cache import set_cache_profile
+from aiogram.exceptions import TelegramMigrateToChat
 
 image_router = Router()
 
@@ -64,7 +65,10 @@ async def generate_image_model(message: Message, user_profile: Profile):
     if access_to_generic["status"] != Errors.NON_ERROR.name:
         logger.info(access_to_generic["result"])
         if access_to_generic["status"] == Errors.ERROR_ACTIVE_GENERATE.name:
-            return await message.answer("🪄 Генерация для данной модели уже активна.")
+            try:
+                return await message.answer("🪄 Генерация для данной модели уже активна.")
+            except TelegramMigrateToChat as e:
+                logger.error(f"Чат был обновлён. Обработай ошибку: {e}")
         return await message.answer("❌ На балансе недостаточно средств или выбран недоступный тариф.")
 
     msg = await message.answer("Переводим ваш запрос...")

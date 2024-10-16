@@ -1,11 +1,13 @@
 import asyncio
 from handlers import main_router
 from db_api import db_api_sync_obj
-from middlewares import ProfileMiddleware, MainMiddleware, RedirectGroupMiddleware
+from middlewares import ProfileMiddleware, MainMiddleware, RedirectGroupMiddleware, ExceptionMiddleware
 from services import bot, dp, scheduler
 from utils.scheduler import update_limits, check_subscription
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
+from services import logger
+from aiogram.types import Update
 
 # Запуск APScheduler
 async def on_startup():
@@ -18,6 +20,7 @@ async def main():
     """Запусти бота"""
     db_api_sync_obj.create_tables() # создаем таблицы
 
+    dp.update.middleware(ExceptionMiddleware())
     dp.message.middleware(ProfileMiddleware()) # создаем middleware создание пользователя если нет
     dp.callback_query.middleware(ProfileMiddleware()) # создаем middleware создание пользователя если нет
 
