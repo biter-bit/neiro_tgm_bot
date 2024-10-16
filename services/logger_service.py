@@ -1,8 +1,8 @@
 import logging
 from logging import Logger
+from logging.handlers import TimedRotatingFileHandler
 from config import settings
 import os
-import sys
 
 def create_logger(level_logger: str) -> Logger:
     """Создай логер"""
@@ -16,13 +16,23 @@ def create_logger(level_logger: str) -> Logger:
     logger.setLevel(getattr(logging, level_logger.upper()))
 
     # Создание файлового обработчика для обычных логов
-    file_handler = logging.FileHandler(os.path.join(basic_path, 'app.log'))
+    file_handler = TimedRotatingFileHandler(
+        os.path.join(basic_path, 'app.log'),
+        when='midnight',
+        interval=1,
+        backupCount=30
+    )
     file_handler.setLevel(logging.INFO)  # Логи от INFO и выше
     file_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(file_handler)
 
     # Создание файлового обработчика для ошибок
-    error_handler = logging.FileHandler(os.path.join(basic_path, 'errors.log'))
+    error_handler = TimedRotatingFileHandler(
+        os.path.join(basic_path, 'errors.log'),
+        when='midnight',
+        interval=1,
+        backupCount=30
+    )
     error_handler.setLevel(logging.ERROR)  # Логи только для ошибок
     error_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(error_handler)
