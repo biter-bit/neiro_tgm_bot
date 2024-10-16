@@ -2,7 +2,7 @@ import logging
 from logging import Logger
 from config import settings
 import os
-
+import sys
 
 def create_logger(level_logger: str) -> Logger:
     """Создай логер"""
@@ -27,5 +27,10 @@ def create_logger(level_logger: str) -> Logger:
     error_handler.setLevel(logging.ERROR)  # Логи только для ошибок
     error_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(error_handler)
+
+    def log_uncaught_exceptions(exctype, value, tb):
+        logger.error("Необработанное исключение", exc_info=(exctype, value, tb))
+
+    sys.excepthook = log_uncaught_exceptions
 
     return logger

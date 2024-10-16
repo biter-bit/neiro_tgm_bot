@@ -9,6 +9,7 @@ from utils.enum import AiModelName
 from utils.cache import get_cache_profile, set_cache_profile, serialization_profile, deserialization_profile
 from utils.states import TypeAiState
 from config import settings
+from sqlalchemy.exc import IntegrityError
 
 class ProfileMiddleware(BaseMiddleware):
     """
@@ -22,7 +23,6 @@ class ProfileMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         """Подготовь пользователя для работы с ботом перед каждым созданием обьекта middleware."""
-
         user: User = event.from_user
 
         ref_link_id = None
@@ -47,14 +47,18 @@ class ProfileMiddleware(BaseMiddleware):
         else:
             profile: Optional[Profile] = await api_profile_async.get_profile(user.id)
             if not profile:
-                profile: Optional[Profile] = await api_profile_async.create_profile(
-                    tgid=user.id,
-                    username=user.username,
-                    first_name=user.first_name,
-                    last_name=user.last_name,
-                    url=user.url,
-                    referal_link_id=ref_link_id
-                )
+                try:
+                    profile: Optional[Profile] = await api_profile_async.create_profile(
+                        tgid=user.id,
+                        username=user.username,
+                        first_name=user.first_name,
+                        last_name=user.last_name,
+                        url=user.url,
+                        referal_link_id=ref_link_id
+                    )
+                except IntegrityError as e:
+                    logger.error(f"Ошибка создания профиля: {e}")
+                    profile: Optional[Profile] = await api_profile_async.get_profile(user.id)
                 if ref_link_id:
                     await api_ref_link_async.add_count_new_users(ref_link_id)
             await set_cache_profile(user.id, await serialization_profile(profile))
