@@ -163,7 +163,7 @@ class Profile(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     tgid: Mapped[int] = mapped_column(BIGINT, unique=True)
-    username: Mapped[Optional[str]] = mapped_column(unique=True, nullable=True)
+    username: Mapped[Optional[str]] = mapped_column(unique=False, nullable=True)
     first_name: Mapped[str | None]
     last_name: Mapped[str | None]
     email: Mapped[str | None]
