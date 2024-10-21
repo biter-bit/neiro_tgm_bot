@@ -6,8 +6,6 @@ from services import bot, dp, scheduler
 from utils.scheduler import update_limits, check_subscription
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from services import logger
-from aiogram.types import Update
 
 # Запуск APScheduler
 async def on_startup():
