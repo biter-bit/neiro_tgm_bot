@@ -1,13 +1,13 @@
 from aiogram.filters import CommandStart
 from aiogram import types, Router
-from utils.enum import Messages
+from utils.enum import Messages, MainButtons
 from aiogram.types import ReplyKeyboardRemove
 from services import logger
 from aiogram.exceptions import TelegramForbiddenError
 
 start_router = Router()
 
-@start_router.message(CommandStart())
+@start_router.message(lambda message: message.text == "/start" or message.text in [btn.value for btn in MainButtons])
 async def cmd_start(message: types.Message):
     """Обработай запрос команды /start"""
     message_start = Messages.START.value

@@ -15,6 +15,14 @@ class NameButtons(Enum):
             result.append(i.value)
         return result
 
+class MainButtons(Enum):
+    TEXT = "📑 Генерация текста"
+    IMG = "🖼 Генерация картинок"
+    PROFILE = "💎 Тарифы и токены"
+    LEARN = "🤖 Для учебы"
+    TARO = "🃏 Расклад Таро"
+    FAQ = "❓ Помощь"
+
 class Messages(Enum):
     """Класс с сообщениями для пользователей"""
     START = textwrap.dedent(
