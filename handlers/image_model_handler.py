@@ -84,6 +84,12 @@ async def generate_image_model(message: Message, user_profile: Profile):
 
             version_mj = "6.0" if session_profile.ai_model_id == AiModelName.MIDJOURNEY_6_0.value else "5.2"
             result_task_generic = await midjourney_obj.async_generate_image(result_translate['result'], version_mj)
+            if result_task_generic["status_code"] == 422:
+                logger.info(f'Неверный prompt для mj - {result_task_generic["result"]}')
+                await message.bot.delete_message(chat_id=message.chat.id, message_id=msg.message_id)
+                return await message.answer(
+                    '❌ Во время генерации произошла ошибка. Ваш prompt не должен начинаться с символа "/". Попробуйте написать запрос заново.'
+                )
             if result_task_generic['status_code'] != 200:
                 logger.error(result_task_generic["result"])
                 await message.bot.delete_message(chat_id=message.chat.id, message_id=msg.message_id)

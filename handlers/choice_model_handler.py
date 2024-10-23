@@ -43,4 +43,8 @@ async def choice_ai_model_for_profile(query: types.CallbackQuery, callback_data:
     try:
         await query.message.edit_reply_markup(reply_markup=markup)
     except TelegramBadRequest as e:
-        logger.info(e)
+        logger.error(e)
+    except AttributeError as e:
+        logger.error(e)
+    except Exception as e:
+        logger.error(e)
