@@ -2,6 +2,7 @@ from aiogram import BaseMiddleware
 from typing import Any, Awaitable, Callable, Dict
 from aiogram.enums import ChatMemberStatus
 from aiogram.exceptions import TelegramBadRequest
+from services import logger
 
 from aiogram.types import Message, CallbackQuery, TelegramObject, InlineKeyboardButton, InlineKeyboardMarkup
 from db_api.models import Profile
@@ -26,13 +27,14 @@ class MainMiddleware(BaseMiddleware):
             if event.text in AiModelName.get_list_value() or event.text in NameButtons.get_list_value() or event.text.startswith('/'):
                 return await handler(event, data)
 
-        if user_profile.is_staff or user_profile.tariffs.name != TariffCode.FREE.value:
-            return await handler(event, data)
+        # if user_profile.is_staff or user_profile.tariffs.name != TariffCode.FREE.value:
+        #     return await handler(event, data)
 
         try:
             status_1 = await event.bot.get_chat_member(chat_id=settings.CHANNELS_IDS[0], user_id=event.from_user.id)
             status_2 = await event.bot.get_chat_member(chat_id=settings.CHANNELS_IDS[1], user_id=event.from_user.id)
-        except TelegramBadRequest:
+        except TelegramBadRequest as e:
+            logger.error(f"Ошибка в обязательной подписке. Указанный чат не найден! - {e}")
             return await handler(event, data)
 
         if user_profile.count_request == 3 and status_1.status in (ChatMemberStatus.LEFT, ChatMemberStatus.KICKED):
