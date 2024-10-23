@@ -37,7 +37,7 @@ class MainMiddleware(BaseMiddleware):
             logger.error(f"Ошибка в обязательной подписке. Указанный чат не найден! - {e}")
             return await handler(event, data)
 
-        if user_profile.count_request == 3 and status_1.status in (ChatMemberStatus.LEFT, ChatMemberStatus.KICKED):
+        if user_profile.count_request >= 3 and status_1.status in (ChatMemberStatus.LEFT, ChatMemberStatus.KICKED):
             text = "Чтобы пользоваться самым лучшим ботом необходимо подписаться на наш канал!"
             markup = InlineKeyboardMarkup(
                 inline_keyboard=[
@@ -45,7 +45,7 @@ class MainMiddleware(BaseMiddleware):
                 ]
             )
 
-        elif user_profile.count_request == 8 and status_2.status in (ChatMemberStatus.LEFT, ChatMemberStatus.KICKED):
+        elif user_profile.count_request >= 8 and status_2.status in (ChatMemberStatus.LEFT, ChatMemberStatus.KICKED):
             text = "Чтобы продолжить пользоваться самым лучшим ботом необходимо подписаться на наш второй канал!"
             markup = InlineKeyboardMarkup(
                 inline_keyboard=[
