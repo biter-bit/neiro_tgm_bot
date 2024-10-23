@@ -30,7 +30,7 @@ class ProfileMiddleware(BaseMiddleware):
             try:
                 if event.text:
                     list_arg = event.text.split(' ')
-                    if len(list_arg) == 2:
+                    if len(list_arg) == 2 and list_arg[0] == '/start':
                         num_link = int(list_arg[1])
                         ref_link = await api_ref_link_async.add_click(f'{settings.USERNAME_BOT}?start={num_link}')
                         ref_link_id = ref_link.id

@@ -50,7 +50,6 @@ async def generate_text_model(message: Message, user_profile: Profile):
     """Обработай текстовые сообщения пользователей, которые являются prompt для текстовых нейронок"""
     session_profile = await get_session_for_profile(user_profile, user_profile.ai_model_id)
     if user_profile.ai_model_id in text_models_openai:
-
         the_check_failed = await check_start_text_generate(message, user_profile, session_profile)
         if the_check_failed['status']:
             await message.answer(the_check_failed['text'])
