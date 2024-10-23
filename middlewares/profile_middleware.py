@@ -1,7 +1,7 @@
 from aiogram import BaseMiddleware
 from typing import Any, Awaitable, Callable, Dict, Optional
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, User
+from aiogram.types import Message, CallbackQuery, User, Chat
 from db_api import api_profile_async, api_ref_link_async
 from db_api.models import Profile
 from services import logger
