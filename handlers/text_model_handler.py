@@ -48,6 +48,7 @@ async def handle_photo(message, session_profile, current_model):
 @text_router.message(TypeAiState.text)
 async def generate_text_model(message: Message, user_profile: Profile):
     """Обработай текстовые сообщения пользователей, которые являются prompt для текстовых нейронок"""
+    raise Exception
     session_profile = await get_session_for_profile(user_profile, user_profile.ai_model_id)
     if user_profile.ai_model_id in text_models_openai:
 

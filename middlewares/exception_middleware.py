@@ -17,7 +17,7 @@ class ExceptionMiddleware(BaseMiddleware):
         try:
             return await handler(event, data)
         except Exception as e:
-            logger.error(f"Пользователь {event.from_user.id}. Произошло необработанное исключение: {e}")
+            logger.error(f"Пользователь {event.event.from_user.id}. Произошло необработанное исключение: {e}")
             if isinstance(event, Message):
                 await event.answer("Произошла ошибка, пожалуйста, попробуйте еще раз.")
             elif isinstance(event, CallbackQuery):
