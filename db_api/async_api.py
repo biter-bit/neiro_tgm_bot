@@ -61,18 +61,17 @@ class ApiTextQueryAsync(DBApiAsync):
     async def get_count_query_select_text_model_ai_for_day(self, model_id):
         """Получи количество запросов выбранной модели за сутки"""
         async with self.async_session_db() as session:
-            # Вычисляем время 24 часа назад
-            last_24_hours = datetime.now() - timedelta(days=1)
+            start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
             query = (
-                select(func.count(TextQuery.id))  # Подсчитываем количество записей
-                .join(ChatSession, TextQuery.chat_session_id == ChatSession.id)  # Джоин с таблицей ChatSession
-                .where(TextQuery.created_at >= last_24_hours)  # Фильтруем запросы за последние 24 часа
-                .where(ChatSession.ai_model_id == model_id)  # Фильтруем по model_id
+                select(func.count(TextQuery.id))
+                .join(ChatSession, TextQuery.chat_session_id == ChatSession.id)
+                .where(TextQuery.created_at >= start_of_day)
+                .where(ChatSession.ai_model_id == model_id)
             )
             # Выполняем запрос
             result = await session.execute(query)
-            count = result.scalar()  # Получаем количество запросов
+            count = result.scalar()
 
         return count
 
@@ -331,12 +330,12 @@ class ApiImageQueryAsync(DBApiAsync):
         """Получи количество запросов выбранной модели за сутки"""
         async with self.async_session_db() as session:
             # Вычисляем время 24 часа назад
-            last_24_hours = datetime.now() - timedelta(days=1)
+            start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
             query = (
                 select(func.count(ImageQuery.id))  # Подсчитываем количество записей
                 .join(ChatSession, ImageQuery.chat_session_id == ChatSession.id)  # Джоин с таблицей ChatSession
-                .where(ImageQuery.created_at >= last_24_hours)  # Фильтруем запросы за последние 24 часа
+                .where(ImageQuery.created_at >= start_of_day)  # Фильтруем запросы за последние 24 часа
             )
             # Выполняем запрос
             result = await session.execute(query)
@@ -415,13 +414,13 @@ class ApiChatSessionAsync(DBApiAsync):
         """Получить количество уникальных profile_id из текстовых и изображенческих запросов за последние 24 часа."""
         async with self.async_session_db() as session:
             # Вычисляем время 24 часа назад
-            last_24_hours = datetime.now() - timedelta(days=1)
+            start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
             # Запрос для получения profile_id из TextQuery
             text_query = (
                 select(ChatSession.profile_id)  # Выбираем только profile_id
                 .join(TextQuery, TextQuery.chat_session_id == ChatSession.id)  # Объединяем с ChatSession
-                .where(TextQuery.created_at >= last_24_hours)  # Фильтруем по времени
+                .where(TextQuery.created_at >= start_of_day)  # Фильтруем по времени
                 .distinct()
             )
 
@@ -429,7 +428,7 @@ class ApiChatSessionAsync(DBApiAsync):
             image_query = (
                 select(ChatSession.profile_id)  # Выбираем только profile_id
                 .join(ImageQuery, ImageQuery.chat_session_id == ChatSession.id)  # Объединяем с ChatSession
-                .where(ImageQuery.created_at >= last_24_hours)  # Фильтруем по времени
+                .where(ImageQuery.created_at >= start_of_day)  # Фильтруем по времени
                 .distinct()
             )
 
@@ -483,21 +482,20 @@ class ApiChatSessionAsync(DBApiAsync):
 
     async def get_count_query_for_day(self):
         async with self.async_session_db() as session:
-            # Вычисляем время 24 часа назад
-            last_24_hours = datetime.now() - timedelta(days=1)
+            start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
             # Запрос для получения profile_id из TextQuery
             text_query = (
                 select(ChatSession.profile_id)  # Выбираем только profile_id
                 .join(TextQuery, TextQuery.chat_session_id == ChatSession.id)  # Объединяем с ChatSession
-                .where(TextQuery.created_at >= last_24_hours)  # Фильтруем по времени
+                .where(TextQuery.created_at >= start_of_day)  # Фильтруем по времени
             )
 
             # Запрос для получения profile_id из ImageQuery
             image_query = (
                 select(ChatSession.profile_id)  # Выбираем только profile_id
                 .join(ImageQuery, ImageQuery.chat_session_id == ChatSession.id)  # Объединяем с ChatSession
-                .where(ImageQuery.created_at >= last_24_hours)  # Фильтруем по времени
+                .where(ImageQuery.created_at >= start_of_day)  # Фильтруем по времени
             )
 
             # Объединяем оба запроса
@@ -770,12 +768,12 @@ class ApiProfileAsync(DBApiAsync):
         """Получить пользователей, созданных за последние сутки"""
         async with self.async_session_db() as session:
             # Вычисляем время 24 часа назад
-            last_24_hours = datetime.now() - timedelta(days=1)
+            start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
             # Строим запрос для выборки пользователей с created_at больше чем last_24_hours
             query = (
                 select(func.count(Profile.id))
-                .where(Profile.created_at >= last_24_hours)
+                .where(Profile.created_at >= start_of_day)
             )
             result = await session.execute(query)
             profiles = result.scalar()
@@ -785,12 +783,12 @@ class ApiProfileAsync(DBApiAsync):
         """Получить пользователей, созданных за последние сутки"""
         async with self.async_session_db() as session:
             # Вычисляем время 24 часа назад
-            last_24_hours = datetime.now() - timedelta(days=1)
+            start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
             # Строим запрос для выборки пользователей с created_at больше чем last_24_hours
             query = (
                 select(func.count(Profile.id))
-                .where(Profile.created_at >= last_24_hours)
+                .where(Profile.created_at >= start_of_day)
                 .where(Profile.referal_link_id.isnot(None))
             )
             result = await session.execute(query)
