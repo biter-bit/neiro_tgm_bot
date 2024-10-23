@@ -78,7 +78,7 @@ async def generate_text_model(message: Message, user_profile: Profile):
 
             try:
                 response = await chat_gpt.async_generate_text(
-                    ai_model=current_model, context=text_messages, prompt=message.text
+                    ai_model=current_model, context=text_messages, prompt=message.text, profile_id=user_profile.tgid
                 )
                 text = response.choices[0].message.content
 

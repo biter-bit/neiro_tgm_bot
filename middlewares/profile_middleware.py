@@ -28,15 +28,16 @@ class ProfileMiddleware(BaseMiddleware):
         ref_link_id = None
         if isinstance(event, Message):
             try:
-                list_arg = event.text.split(' ')
-                if len(list_arg) == 2:
-                    num_link = int(list_arg[1])
-                    ref_link = await api_ref_link_async.add_click(f'{settings.USERNAME_BOT}?start={num_link}')
-                    ref_link_id = ref_link.id
+                if event.text:
+                    list_arg = event.text.split(' ')
+                    if len(list_arg) == 2:
+                        num_link = int(list_arg[1])
+                        ref_link = await api_ref_link_async.add_click(f'{settings.USERNAME_BOT}?start={num_link}')
+                        ref_link_id = ref_link.id
             except TypeError as e:
                 logger.error("Команда /start с данным аргументом не работает.")
             except ValueError as e:
-                logger.error("Забей")
+                logger.error(f"Ошибка значения: {e}")
             except AttributeError as e:
                 logger.error("В event.text значение None.")
 
