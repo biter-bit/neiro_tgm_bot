@@ -23,7 +23,7 @@ text_models_openai = [
 ]
 
 
-async def handle_photo(message, session_profile, current_model):
+async def handle_photo(message, session_profile, current_model, user_profile):
     photo = message.photo[-1]  # Берем фото с максимальным разрешением
     file_info = await bot.get_file(photo.file_id)
 
@@ -41,7 +41,7 @@ async def handle_photo(message, session_profile, current_model):
                                                                                 current_model)
     deserialization_list = [json.loads(message_dict), json.loads(photo_dict)]
     response = await chat_gpt.async_generate_text(
-        ai_model=current_model, context=text_messages, prompt=deserialization_list
+        ai_model=current_model, context=text_messages, prompt=deserialization_list, profile_id=user_profile.tgid
     )
     await message.reply(f"{response.choices[0].message.content}")
 
@@ -63,7 +63,7 @@ async def generate_text_model(message: Message, user_profile: Profile):
             await api_chat_session_async.active_generic_in_session(session_profile.id)
             if message.content_type == ContentType.PHOTO.value:
                 if current_model == AiModelName.GPT_4_O.value:
-                    await handle_photo(message, session_profile, current_model)
+                    await handle_photo(message, session_profile, current_model, user_profile)
                 else:
                     await message.answer(
                         "Похоже, что вы прикрепили изображение. Считывание изображений доступно в GPT-4o. "
